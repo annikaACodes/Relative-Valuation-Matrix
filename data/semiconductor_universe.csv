@@ -1,72 +1,105 @@
-company_name,primary_ticker,local_ticker,us_adr_ticker,country,segment,market_cap_usd_bn,source_key,as_of,notes
-NVIDIA Corporation,NVDA,NVDA,,United States,Fabless AI GPU accelerator,5250.00,companiesmarketcap_semis,2026-09-02,Core semiconductor designer
-Taiwan Semiconductor Manufacturing Company Limited,TSM,2330.TW,TSM,Taiwan,Foundry,2147.00,companiesmarketcap_semis,2026-09-02,ADR used as primary ticker
-Broadcom Inc.,AVGO,AVGO,,United States,Fabless networking custom silicon,1758.00,companiesmarketcap_semis,2026-09-02,Core semiconductor designer
-Samsung Electronics Co. Ltd.,005930.KS,005930.KS,SSNLF,South Korea,Memory IDM foundry,1203.00,companiesmarketcap_semis,2026-09-02,Local ticker used; OTC ADR noted
-Micron Technology Inc.,MU,MU,,United States,Memory,1054.00,companiesmarketcap_semis,2026-09-02,DRAM and NAND memory
-SK hynix Inc.,000660.KS,000660.KS,SKHY,South Korea,Memory,837.93,companiesmarketcap_semis,2026-09-02,Local ticker used; ADR noted
-Advanced Micro Devices Inc.,AMD,AMD,,United States,Fabless CPU GPU accelerator,750.30,companiesmarketcap_semis,2026-09-02,Core semiconductor designer
-ASML Holding N.V.,ASML,ASML.AS,ASML,Netherlands,Semiconductor equipment lithography,639.58,companiesmarketcap_semis,2026-09-02,ADR used as primary ticker
-ChangXin Memory Technologies Inc.,688825.SS,688825.SS,,China,Memory,573.25,companiesmarketcap_semis,2026-09-02,DRAM memory manufacturer
-Intel Corporation,INTC,INTC,,United States,IDM foundry CPU,470.30,companiesmarketcap_semis,2026-09-02,IDM and foundry
-Lam Research Corporation,LRCX,LRCX,,United States,Semiconductor equipment etch deposition,363.13,companiesmarketcap_semis,2026-09-02,Wafer fabrication equipment
-Applied Materials Inc.,AMAT,AMAT,,United States,Semiconductor equipment materials engineering,350.65,companiesmarketcap_semis,2026-09-02,Wafer fabrication equipment
-Arm Holdings plc,ARM,ARM,,United Kingdom,Semiconductor IP CPU architecture,250.78,companiesmarketcap_semis,2026-09-02,IP licensing and compute platforms
-Texas Instruments Incorporated,TXN,TXN,,United States,Analog embedded IDM,231.36,companiesmarketcap_semis,2026-09-02,Analog and embedded processing
-SanDisk Corporation,SNDK,SNDK,,United States,Memory storage,229.40,macrotrends_sandisk,2026-09-02,NAND flash memory and SSDs
-KLA Corporation,KLAC,KLAC,,United States,Process control metrology equipment,223.27,companiesmarketcap_semis,2026-09-02,Inspection and metrology
-MediaTek Inc.,2454.TW,2454.TW,,Taiwan,Fabless mobile connectivity,214.90,companiesmarketcap_semis,2026-09-02,Mobile and connectivity SoCs
-Marvell Technology Inc.,MRVL,MRVL,,United States,Fabless data infrastructure,189.07,companiesmarketcap_semis,2026-09-02,Networking storage and custom silicon
-QUALCOMM Incorporated,QCOM,QCOM,,United States,Fabless mobile RF automotive,177.94,companiesmarketcap_semis,2026-09-02,Mobile SoCs and RF
-Kioxia Holdings Corporation,285A.T,285A.T,KXIAY,Japan,Memory storage,174.58,companiesmarketcap_kioxia,2026-09-02,NAND flash memory manufacturer
-Analog Devices Inc.,ADI,ADI,,United States,Analog mixed-signal,171.78,companiesmarketcap_semis,2026-09-02,Analog and mixed-signal chips
-Tokyo Electron Limited,8035.T,8035.T,TOELY,Japan,Semiconductor equipment,150.92,companiesmarketcap_semis,2026-09-02,Wafer fabrication equipment
-Advantest Corporation,6857.T,6857.T,ATEYY,Japan,Semiconductor test equipment,147.02,companiesmarketcap_semis,2026-09-02,ATE and test systems
-Cambricon Technologies Corporation Limited,688256.SS,688256.SS,,China,Fabless AI accelerator,103.67,companiesmarketcap_semis,2026-09-02,AI accelerator chips
-ASE Technology Holding Co. Ltd.,ASX,3711.TW,ASX,Taiwan,OSAT packaging test,97.45,companiesmarketcap_semis,2026-09-02,ADR used as primary ticker
-Cadence Design Systems Inc.,CDNS,CDNS,,United States,EDA software,93.30,macrotrends_cadence,2026-09-02,Electronic design automation for chip design
-Infineon Technologies AG,IFX.DE,IFX.DE,IFNNY,Germany,Power automotive MCU,83.36,companiesmarketcap_semis,2026-09-02,Local ticker used; OTC ADR noted
-Synopsys Inc.,SNPS,SNPS,,United States,EDA software IP,79.49,companiesmarketcap_semis,2026-09-02,EDA and semiconductor IP
-Semiconductor Manufacturing International Corporation,0981.HK,0981.HK,SMICY,China,Foundry,74.50,companiesmarketcap_semis,2026-09-02,Foundry
-NAURA Technology Group Co. Ltd.,002371.SZ,002371.SZ,,China,Semiconductor equipment,72.13,companiesmarketcap_semis,2026-09-02,Wafer fabrication equipment
-Shin-Etsu Chemical Co. Ltd.,4063.T,4063.T,SHECY,Japan,Semiconductor materials wafers,67.91,companiesmarketcap_shinetsu,2026-09-02,Silicon wafers and photomask substrates; diversified chemicals
-Monolithic Power Systems Inc.,MPWR,MPWR,,United States,Power management semiconductors,60.24,companiesmarketcap_semis,2026-09-02,Power management ICs
-NXP Semiconductors N.V.,NXPI,NXPI,,Netherlands,Automotive industrial semiconductors,56.08,companiesmarketcap_semis,2026-09-02,NASDAQ-listed ordinary shares
-Coherent Corp.,COHR,COHR,,United States,Photonics compound semiconductor materials,53.27,companiesmarketcap_semis,2026-09-02,Optoelectronics and compound semiconductor exposure
-Teradyne Inc.,TER,TER,,United States,Semiconductor test equipment,52.46,robinhood_teradyne,2026-09-02,ATE; significant semiconductor test exposure
-HOYA Corporation,7741.T,7741.T,HOCPY,Japan,Photomask blanks materials,51.35,companiesmarketcap_hoya,2026-09-02,Mask blanks and photomasks; diversified precision instruments
-United Microelectronics Corporation,UMC,2303.TW,UMC,Taiwan,Foundry,51.33,companiesmarketcap_semis,2026-09-02,ADR used as primary ticker
-Nanya Technology Corporation,2408.TW,2408.TW,,Taiwan,Memory,50.52,companiesmarketcap_semis,2026-09-02,DRAM memory
-Advanced Micro-Fabrication Equipment Inc. China,688012.SS,688012.SS,,China,Semiconductor equipment,49.08,companiesmarketcap_semis,2026-09-02,Etch and deposition equipment
-Unimicron Technology Corp.,3037.TW,3037.TW,,Taiwan,Advanced IC substrates,48.78,companiesmarketcap_unimicron,2026-09-02,IC substrates and PCBs
-Astera Labs Inc.,ALAB,ALAB,,United States,Fabless connectivity semiconductors,48.56,companiesmarketcap_semis,2026-09-02,Data center connectivity chips
-ASM International N.V.,ASM.AS,ASM.AS,ASMIY,Netherlands,Semiconductor equipment deposition,45.08,companiesmarketcap_semis,2026-09-02,ALD and epitaxy equipment
-STMicroelectronics N.V.,STM,STM,STM,Switzerland,IDM analog power MCU,44.06,companiesmarketcap_semis,2026-09-02,ADR used as primary ticker
-Cerebras Systems Inc.,CBRS,CBRS,,United States,AI accelerator systems,41.00,companiesmarketcap_semis,2026-09-02,Wafer-scale AI compute
-GigaDevice Semiconductor Inc.,603986.SS,603986.SS,,China,Memory MCU fabless,40.79,companiesmarketcap_semis,2026-09-02,NOR flash MCU and sensors
-Credo Technology Group Holding Ltd,CRDO,CRDO,,United States,Fabless connectivity semiconductors,38.83,companiesmarketcap_semis,2026-09-02,High-speed connectivity chips
-Microchip Technology Incorporated,MCHP,MCHP,,United States,MCU analog mixed-signal,38.77,companiesmarketcap_semis,2026-09-02,MCUs analog and embedded control
-DISCO Corporation,6146.T,6146.T,DSCSY,Japan,Semiconductor equipment dicing grinding,37.43,companiesmarketcap_semis,2026-09-02,Back-end wafer processing equipment
-Renesas Electronics Corporation,6723.T,6723.T,RNECY,Japan,Automotive industrial semiconductors,36.70,companiesmarketcap_semis,2026-09-02,MCUs SoCs analog and power
-IBIDEN Co. Ltd.,4062.T,4062.T,IBIDF,Japan,Advanced IC substrates,35.60,pitchbook_ibiden,2026-08-28,High-performance IC package substrates
-onsemi,ON,ON,,United States,Power analog image sensors,28.28,companiesmarketcap_semis,2026-09-02,Power and sensing semiconductors
-Hua Hong Semiconductor Limited,1347.HK,1347.HK,HUSKF,China,Foundry,26.03,companiesmarketcap_semis,2026-09-02,Specialty foundry
-Global Unichip Corporation,3443.TW,3443.TW,,Taiwan,ASIC design services,24.86,companiesmarketcap_semis,2026-09-02,ASIC design and turnkey services
-Qnity Electronics Inc.,Q,Q,,United States,Semiconductor materials electronics materials,24.16,companiesmarketcap_semis,2026-09-02,Electronics materials with semiconductor exposure
-GlobalFoundries Inc.,GFS,GFS,,United States,Foundry,24.10,companiesmarketcap_semis,2026-09-02,Specialty foundry
-Nan Ya Printed Circuit Board Corporation,8046.TW,8046.TW,,Taiwan,Advanced IC substrates,23.00,pitchbook_nanya_pcb,2026-08-21,IC substrates and PCBs
-Tower Semiconductor Ltd.,TSEM,TSEM,,Israel,Foundry,22.49,companiesmarketcap_semis,2026-09-02,NASDAQ-listed ordinary shares
-Lite-On Technology Corporation,2301.TW,2301.TW,,Taiwan,Optoelectronics electronic components,22.49,companiesmarketcap_semis,2026-09-02,Included as broad semiconductor-adjacent optoelectronics
-VAT Group AG,VACN.SW,VACN.SW,VACNY,Switzerland,Semiconductor equipment supplier vacuum valves,21.53,companiesmarketcap_vat,2026-09-02,Vacuum valves and systems with high semiconductor exposure
-MACOM Technology Solutions Holdings Inc.,MTSI,MTSI,,United States,RF microwave photonic semiconductors,20.00,companiesmarketcap_semis,2026-09-02,RF microwave and optical chips
-Entegris Inc.,ENTG,ENTG,,United States,Semiconductor materials contamination control,19.78,companiesmarketcap_semis,2026-09-02,Materials filtration and process solutions
-Technoprobe S.p.A.,TPRO.MI,TPRO.MI,,Italy,Semiconductor test equipment,19.52,companiesmarketcap_semis,2026-09-02,Probe cards and test interfaces
-Hwatsing Technology Co. Ltd.,688120.SS,688120.SS,,China,Semiconductor equipment CMP,18.51,companiesmarketcap_semis,2026-09-02,CMP equipment
-Lasertec Corporation,6920.T,6920.T,LSRCY,Japan,Semiconductor inspection equipment,18.13,companiesmarketcap_semis,2026-09-02,Mask and wafer inspection equipment
-BE Semiconductor Industries N.V.,BESI.AS,BESI.AS,BESIY,Netherlands,Semiconductor assembly equipment,17.47,companiesmarketcap_semis,2026-09-02,Advanced packaging assembly equipment
-Xi'an Eswin Material Technology Co. Ltd.,688783.SS,688783.SS,,China,Semiconductor materials wafers,17.40,companiesmarketcap_semis,2026-09-02,Silicon wafers and materials
-SiTime Corporation,SITM,SITM,,United States,Timing semiconductors MEMS,16.55,companiesmarketcap_semis,2026-09-02,MEMS timing devices
-Lattice Semiconductor Corporation,LSCC,LSCC,,United States,Fabless FPGA,15.86,companiesmarketcap_semis,2026-09-02,Low-power FPGAs
-Onto Innovation Inc.,ONTO,ONTO,,United States,Process control metrology equipment,15.67,companiesmarketcap_semis,2026-09-02,Inspection metrology and lithography process control
-SCREEN Holdings Co. Ltd.,7735.T,7735.T,DINRF,Japan,Semiconductor equipment,15.54,companiesmarketcap_semis,2026-09-02,Wafer cleaning and lithography track equipment
-VeriSilicon Microelectronics Shanghai Co. Ltd.,688521.SS,688521.SS,,China,Semiconductor IP design services,15.17,companiesmarketcap_semis,2026-09-02,IP licensing and chip design services
+company_id,company_name,country,segment,inclusion_tier,universe_status,market_cap_usd_bn,market_cap_as_of,primary_ticker,primary_exchange,primary_currency,primary_lookup_symbol,notes
+nvidia,NVIDIA,United States,Fabless - compute and AI,core,included,5253.00,2026-09-01,NVDA,NASDAQ,USD,NVDA,
+tsmc,Taiwan Semiconductor Manufacturing,Taiwan,Foundry,core,included,2165.00,2026-09-01,TSM,NYSE,USD,TSM,US-listed ADS used as display ticker
+broadcom,Broadcom,United States,Fabless - connectivity and infrastructure,core,included,1754.00,2026-09-01,AVGO,NASDAQ,USD,AVGO,
+samsung-electronics,Samsung Electronics,South Korea,Diversified IDM and memory,core,included,1245.00,2026-09-01,005930,KRX,KRW,005930.KS,Semiconductors are a major strategic business
+micron,Micron Technology,United States,Memory,core,included,1053.00,2026-09-01,MU,NASDAQ,USD,MU,
+sk-hynix,SK Hynix,South Korea,Memory,core,included,866.68,2026-09-01,000660,KRX,KRW,000660.KS,
+amd,Advanced Micro Devices,United States,Fabless - compute and AI,core,included,760.04,2026-09-01,AMD,NASDAQ,USD,AMD,
+asml,ASML Holding,Netherlands,Wafer fabrication equipment,core,included,651.49,2026-09-01,ASML,NASDAQ,USD,ASML,US-listed registry shares used as display ticker
+cxmt,ChangXin Memory Technologies,China,Memory,core,included,611.33,2026-09-01,688825,SSE,CNY,688825.SS,
+intel,Intel,United States,IDM - compute,core,included,472.94,2026-09-01,INTC,NASDAQ,USD,INTC,
+lam-research,Lam Research,United States,Wafer fabrication equipment,core,included,377.77,2026-09-01,LRCX,NASDAQ,USD,LRCX,
+applied-materials,Applied Materials,United States,Wafer fabrication equipment,core,included,366.38,2026-09-01,AMAT,NASDAQ,USD,AMAT,
+arm,Arm Holdings,United Kingdom,Semiconductor IP,core,included,255.30,2026-09-01,ARM,NASDAQ,USD,ARM,
+texas-instruments,Texas Instruments,United States,IDM - analog and embedded,core,included,236.20,2026-09-01,TXN,NASDAQ,USD,TXN,
+kla,KLA,United States,Process control equipment,core,included,229.35,2026-09-01,KLAC,NASDAQ,USD,KLAC,
+sandisk,Sandisk,United States,Memory and storage,core,included,225.02,2026-09-01,SNDK,NASDAQ,USD,SNDK,NAND flash manufacturer separated from Western Digital
+mediatek,MediaTek,Taiwan,Fabless - connectivity and compute,core,included,197.95,2026-09-01,2454,TWSE,TWD,2454.TW,
+marvell,Marvell Technology,United States,Fabless - data infrastructure,core,included,194.67,2026-09-01,MRVL,NASDAQ,USD,MRVL,
+qualcomm,Qualcomm,United States,Fabless - wireless and compute,core,included,175.36,2026-09-01,QCOM,NASDAQ,USD,QCOM,
+analog-devices,Analog Devices,United States,IDM - analog and mixed signal,core,included,175.30,2026-09-01,ADI,NASDAQ,USD,ADI,
+kioxia,Kioxia Holdings,Japan,Memory,core,included,174.58,2026-09-01,285A,TSE,JPY,285A.T,
+tokyo-electron,Tokyo Electron,Japan,Wafer fabrication equipment,core,included,160.40,2026-09-01,8035,TSE,JPY,8035.T,
+advantest,Advantest,Japan,Semiconductor test equipment,core,included,152.23,2026-09-01,6857,TSE,JPY,6857.T,
+sony,Sony Group,Japan,Diversified - image sensors,extended,included,145.23,2026-09-01,SONY,NYSE,USD,SONY,Diversified parent with a strategically important image-sensor business
+cambricon,Cambricon Technologies,China,Fabless - compute and AI,core,included,104.08,2026-09-01,688256,SSE,CNY,688256.SS,
+ase,ASE Technology Holding,Taiwan,OSAT and electronic manufacturing,core,included,98.36,2026-09-01,ASX,NYSE,USD,ASX,US-listed ADS used as display ticker
+hygon,Hygon Information Technology,China,Fabless - compute and AI,core,included,87.60,2026-09-01,688041,SSE,CNY,688041.SS,
+infineon,Infineon Technologies,Germany,IDM - power automotive and IoT,core,included,85.44,2026-09-01,IFX,XETRA,EUR,IFX.DE,
+cadence,Cadence Design Systems,United States,EDA and design software,core,included,85.26,2026-09-01,CDNS,NASDAQ,USD,CDNS,
+synopsys,Synopsys,United States,EDA and semiconductor IP,core,included,84.82,2026-09-01,SNPS,NASDAQ,USD,SNPS,
+lumentum,Lumentum Holdings,United States,Photonics and optoelectronics,core,included,77.94,2026-09-01,LITE,NASDAQ,USD,LITE,Semiconductor lasers and photonic components
+smic,Semiconductor Manufacturing International,China,Foundry,core,included,77.26,2026-09-01,0981,HKEX,HKD,0981.HK,
+naura,NAURA Technology Group,China,Wafer fabrication equipment,core,included,75.57,2026-09-01,002371,SZSE,CNY,002371.SZ,
+samsung-electro-mechanics,Samsung Electro-Mechanics,South Korea,Package substrates and components,extended,included,75.30,2026-09-01,009150,KRX,KRW,009150.KS,Diversified component supplier with a major package-substrate business
+shin-etsu,Shin-Etsu Chemical,Japan,Materials and silicon wafers,extended,included,67.91,2026-09-01,4063,TSE,JPY,4063.T,Diversified materials group and a leading silicon-wafer supplier
+monolithic-power,Monolithic Power Systems,United States,Fabless - analog and power,core,included,61.73,2026-09-01,MPWR,NASDAQ,USD,MPWR,
+nxp,NXP Semiconductors,Netherlands,IDM - automotive and industrial,core,included,56.37,2026-09-01,NXPI,NASDAQ,USD,NXPI,
+teradyne,Teradyne,United States,Semiconductor test equipment,core,included,54.69,2026-09-01,TER,NASDAQ,USD,TER,
+coherent,Coherent,United States,Photonics and compound semiconductor materials,core,included,54.67,2026-09-01,COHR,NYSE,USD,COHR,
+nanya-technology,Nanya Technology,Taiwan,Memory,core,included,53.12,2026-09-01,2408,TWSE,TWD,2408.TW,
+amec,Advanced Micro-Fabrication Equipment Inc. China,China,Wafer fabrication equipment,core,included,51.60,2026-09-01,688012,SSE,CNY,688012.SS,
+hoya,HOYA,Japan,Photomasks and mask blanks,extended,included,51.53,2026-09-01,7741,TSE,JPY,7741.T,Diversified group with strategically important semiconductor mask products
+astera-labs,Astera Labs,United States,Fabless - connectivity,core,included,50.21,2026-09-01,ALAB,NASDAQ,USD,ALAB,
+umc,United Microelectronics,Taiwan,Foundry,core,included,49.63,2026-09-01,UMC,NYSE,USD,UMC,US-listed ADS used as display ticker
+unimicron,Unimicron Technology,Taiwan,Package substrates and interconnect,extended,included,48.82,2026-09-01,3037,TWSE,TWD,3037.TW,Major IC-substrate supplier
+asm-international,ASM International,Netherlands,Wafer fabrication equipment,core,included,46.67,2026-09-01,ASM,EURONEXT_AMSTERDAM,EUR,ASM.AS,
+stmicroelectronics,STMicroelectronics,Switzerland,IDM - analog power and embedded,core,included,44.04,2026-09-01,STM,NYSE,USD,STM,
+credo,Credo Technology,United States,Fabless - connectivity,core,included,43.74,2026-09-01,CRDO,NASDAQ,USD,CRDO,
+cerebras,Cerebras Systems,United States,Fabless - compute and AI,core,included,42.54,2026-09-01,CBRS,NASDAQ,USD,CBRS,
+gigadevice,GigaDevice Semiconductor,China,Fabless - memory and microcontrollers,core,included,42.39,2026-09-01,603986,SSE,CNY,603986.SS,
+metax,MetaX Integrated Circuits,China,Fabless - compute and AI,core,included,41.13,2026-09-01,688802,SSE,CNY,688802.SS,
+microchip,Microchip Technology,United States,IDM - analog and embedded,core,included,39.60,2026-09-01,MCHP,NASDAQ,USD,MCHP,
+disco,DISCO Corporation,Japan,Wafer processing equipment,core,included,39.43,2026-09-01,6146,TSE,JPY,6146.T,
+renesas,Renesas Electronics,Japan,IDM - automotive and embedded,core,included,38.77,2026-09-01,6723,TSE,JPY,6723.T,
+sj-semiconductor,SJ Semiconductor,China,OSAT and advanced packaging,core,included,37.56,2026-09-01,688820,SSE,CNY,688820.SS,
+moore-threads,Moore Threads Technology,China,Fabless - compute and AI,core,included,37.47,2026-09-01,688795,SSE,CNY,688795.SS,
+montage,Montage Technology,China,Fabless - memory interface,core,included,36.00,2026-09-01,688008,SSE,CNY,688008.SS,
+ibiden,Ibiden,Japan,Package substrates and materials,extended,included,35.94,2026-09-01,4062,TSE,JPY,4062.T,Major advanced IC-package substrate supplier
+shennan-circuits,Shennan Circuits,China,Package substrates and interconnect,extended,included,35.90,2026-09-01,002916,SZSE,CNY,002916.SZ,Major IC-substrate and printed-circuit supplier
+hon-precision,Hon. Precision,Taiwan,Semiconductor test equipment,core,included,33.35,2026-09-01,7769,TWSE,TWD,7769.TW,
+piotech,Piotech,China,Wafer fabrication equipment,core,included,29.19,2026-09-01,688072,SSE,CNY,688072.SS,
+dapustor,DapuStor,China,Storage controllers and enterprise SSDs,extended,included,28.49,2026-09-01,301666,SZSE,CNY,301666.SZ,Designs storage-controller chips and integrated enterprise SSD products
+yuanjie,Yuanjie Semiconductor Technology,China,Photonics and optoelectronics,core,included,28.32,2026-09-01,688498,SSE,CNY,688498.SS,
+onsemi,onsemi,United States,IDM - power and sensing,core,included,28.26,2026-09-01,ON,NASDAQ,USD,ON,
+hua-hong,Hua Hong Semiconductor,China,Foundry,core,included,27.26,2026-09-01,1347,HKEX,HKD,1347.HK,
+changchuan,Hangzhou Changchuan Technology,China,Semiconductor test equipment,core,included,26.27,2026-09-01,300604,SZSE,CNY,300604.SZ,
+winbond,Winbond Electronics,Taiwan,Memory,core,included,25.84,2026-09-01,2344,TWSE,TWD,2344.TW,
+global-unichip,Global Unichip,Taiwan,Fabless - ASIC design services,core,included,25.81,2026-09-01,3443,TWSE,TWD,3443.TW,
+qnity,Qnity Electronics,United States,Semiconductor materials and components,core,included,25.15,2026-09-01,Q,NYSE,USD,Q,
+nanya-pcb,Nan Ya Printed Circuit Board,Taiwan,Package substrates and interconnect,extended,included,24.98,2026-09-01,8046,TWSE,TWD,8046.TW,Major IC-substrate supplier
+globalfoundries,GlobalFoundries,United States,Foundry,core,included,24.55,2026-09-01,GFS,NASDAQ,USD,GFS,
+longsys,Shenzhen Longsys Electronics,China,Memory and storage,extended,included,24.40,2026-09-01,301308,SZSE,CNY,301308.SZ,Memory products plus packaging and testing
+jentech,Jentech Precision Industrial,Taiwan,Semiconductor thermal and lead-frame components,extended,included,23.78,2026-09-01,3653,TWSE,TWD,3653.TW,Included for semiconductor package cooling and lead-frame exposure
+centec,Suzhou Centec Communications,China,Fabless - networking,core,included,23.78,2026-09-01,688702,SSE,CNY,688702.SS,
+tower,Tower Semiconductor,Israel,Foundry,core,included,23.51,2026-09-01,TSEM,NASDAQ,USD,TSEM,
+jx-advanced-metals,JX Advanced Metals,Japan,Semiconductor materials,extended,included,22.86,2026-09-01,5016,TSE,JPY,5016.T,Major sputtering-target and advanced-materials supplier
+aspeed,ASPEED Technology,Taiwan,Fabless - server management,core,included,22.31,2026-09-01,5274,TPEX,TWD,5274.TWO,
+lite-on,Lite-On Technology,Taiwan,Photonics and optoelectronics,extended,included,21.85,2026-09-01,2301,TWSE,TWD,2301.TW,Diversified electronics group with optosemiconductor and power-device exposure
+acm-shanghai,ACM Research Shanghai,China,Wafer fabrication equipment,core,included,21.64,2026-09-01,688082,SSE,CNY,688082.SS,Publicly listed Chinese operating subsidiary
+vat-group,VAT Group,Switzerland,Vacuum equipment and subsystems,extended,included,21.51,2026-09-01,VACN,SIX,CHF,VACN.SW,High semiconductor-equipment exposure
+technoprobe,Technoprobe,Italy,Semiconductor test interfaces,core,included,20.62,2026-09-01,TPRO,BORSA_ITALIANA,EUR,TPRO.MI,
+entegris,Entegris,United States,Semiconductor materials and contamination control,core,included,20.61,2026-09-01,ENTG,NASDAQ,USD,ENTG,
+macom,MACOM Technology Solutions,United States,Fabless - RF and photonics,core,included,20.25,2026-09-01,MTSI,NASDAQ,USD,MTSI,
+jcet,JCET Group,China,OSAT and advanced packaging,core,included,20.16,2026-09-01,600584,SSE,CNY,600584.SS,
+hwatsing,Hwatsing Technology,China,Wafer fabrication equipment,core,included,19.24,2026-09-01,688120,SSE,CNY,688120.SS,
+resonac,Resonac Holdings,Japan,Semiconductor materials,extended,included,19.18,2026-09-01,4004,TSE,JPY,4004.T,Diversified materials group with major advanced-packaging exposure
+skyverse,Skyverse Technology,China,Process control equipment,core,included,19.16,2026-09-01,688361,SSE,CNY,688361.SS,
+lasertec,Lasertec,Japan,Process control equipment,core,included,18.86,2026-09-01,6920,TSE,JPY,6920.T,
+eswin-materials,Xi'an Eswin Material Technology,China,Materials and silicon wafers,core,included,18.66,2026-09-01,688783,SSE,CNY,688783.SS,
+besi,BE Semiconductor Industries,Netherlands,Assembly and packaging equipment,core,included,18.14,2026-09-01,BESI,EURONEXT_AMSTERDAM,EUR,BESI.AS,
+mks,MKS Instruments,United States,Semiconductor equipment and subsystems,core,included,17.33,2026-09-01,MKSI,NASDAQ,USD,MKSI,
+sitime,SiTime,United States,Fabless - timing,core,included,16.71,2026-09-01,SITM,NASDAQ,USD,SITM,
+mpi,MPI Corporation,Taiwan,Semiconductor test interfaces,core,included,16.68,2026-09-01,6223,TPEX,TWD,6223.TWO,
+onto,Onto Innovation,United States,Process control equipment,core,included,16.55,2026-09-01,ONTO,NYSE,USD,ONTO,
+biwin,BIWIN Storage Technology,China,Memory and storage,extended,included,16.53,2026-09-01,688525,SSE,CNY,688525.SS,Memory products plus packaging and testing
+lattice,Lattice Semiconductor,United States,Fabless - programmable logic,core,included,16.24,2026-09-01,LSCC,NASDAQ,USD,LSCC,
+screen,SCREEN Holdings,Japan,Wafer fabrication equipment,core,included,16.08,2026-09-01,7735,TSE,JPY,7735.T,
+verisilicon,VeriSilicon Microelectronics,China,Semiconductor IP and design services,core,included,15.67,2026-09-01,688521,SSE,CNY,688521.SS,
+omnivision,OmniVision Integrated Circuits Group,China,Fabless - image sensors and analog,core,included,15.29,2026-09-01,603501,SSE,CNY,603501.SS,Formerly Will Semiconductor
+hanmi,Hanmi Semiconductor,South Korea,Assembly and packaging equipment,core,included,15.25,2026-09-01,042700,KRX,KRW,042700.KS,
+globalwafers,GlobalWafers,Taiwan,Materials and silicon wafers,core,watchlist,14.95,2026-09-01,6488,TPEX,TWD,6488.TWO,Near-threshold watchlist
+tongfu,Tongfu Microelectronics,China,OSAT and advanced packaging,core,watchlist,14.58,2026-09-01,002156,SZSE,CNY,002156.SZ,Near-threshold watchlist
+techwinsemi,Shenzhen Techwinsemi Technology,China,Memory packaging and test,core,watchlist,14.11,2026-09-01,001309,SZSE,CNY,001309.SZ,Near-threshold watchlist
+kinsus,Kinsus Interconnect Technology,Taiwan,Package substrates and interconnect,extended,watchlist,13.61,2026-09-01,3189,TWSE,TWD,3189.TW,Near-threshold watchlist
