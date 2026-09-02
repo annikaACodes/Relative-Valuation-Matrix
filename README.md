@@ -24,7 +24,7 @@ Included businesses cover:
 
 ## Files
 
-- `data/semiconductor_universe.csv`: company master plus the current market-cap screen
+- `data/semiconductor_universe.csv`: company master, preferred ticker, fiscal year, and current market-cap screen
 - `data/alternate_listings.csv`: local listings, ADRs, ADSs, and useful ticker aliases
 - `data/datapoint_definitions.csv`: definitions for valuation datapoints
 - `data/datapoint_values.csv`: dated company datapoint values
@@ -50,6 +50,7 @@ python scripts/query_database.py "Sony Group" --json
 ```
 
 Queries accept a company id, exact or partial English company name, raw ticker, or exchange-qualified lookup symbol.
+`Ticker` prefers a U.S.-listed share, ADR, ADS, or useful U.S. OTC symbol when one is available; otherwise it uses the primary local listing. `Fiscal Year` distinguishes calendar-year reporters from companies with non-standard year ends or 52/53-week rules.
 
 ## Add a datapoint
 
@@ -71,8 +72,10 @@ Text and date values are also supported with `--type text` and `--type date`.
 
 1. Edit `data/semiconductor_universe.csv` or `data/alternate_listings.csv`.
 2. Keep `market_cap_as_of` in ISO `YYYY-MM-DD` format.
-3. Set `universe_status` to `included` only when `market_cap_usd_bn` is above `15.0`.
-4. Run `python scripts/build_database.py`.
-5. Commit both the CSV changes and regenerated SQLite file.
+3. Use `Standard (Dec 31)` or `Non-standard (...)` in `Fiscal Year`.
+4. Ensure `Ticker` matches a primary or alternate listing stored for that company.
+5. Set `universe_status` to `included` only when `market_cap_usd_bn` is above `15.0`.
+6. Run `python scripts/build_database.py`.
+7. Commit both the CSV changes and regenerated SQLite file.
 
 The build fails on duplicate companies, duplicate ticker aliases, invalid dates, unknown foreign keys, malformed datapoints, or an included company at or below the threshold.
