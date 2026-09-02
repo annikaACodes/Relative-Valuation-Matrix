@@ -1,0 +1,72 @@
+company_name,primary_ticker,local_ticker,us_adr_ticker,country,segment,market_cap_usd_bn,source_key,as_of,notes
+NVIDIA Corporation,NVDA,NVDA,,United States,Fabless AI GPU accelerator,5250.00,companiesmarketcap_semis,2026-09-02,Core semiconductor designer
+Taiwan Semiconductor Manufacturing Company Limited,TSM,2330.TW,TSM,Taiwan,Foundry,2147.00,companiesmarketcap_semis,2026-09-02,ADR used as primary ticker
+Broadcom Inc.,AVGO,AVGO,,United States,Fabless networking custom silicon,1758.00,companiesmarketcap_semis,2026-09-02,Core semiconductor designer
+Samsung Electronics Co. Ltd.,005930.KS,005930.KS,SSNLF,South Korea,Memory IDM foundry,1203.00,companiesmarketcap_semis,2026-09-02,Local ticker used; OTC ADR noted
+Micron Technology Inc.,MU,MU,,United States,Memory,1054.00,companiesmarketcap_semis,2026-09-02,DRAM and NAND memory
+SK hynix Inc.,000660.KS,000660.KS,SKHY,South Korea,Memory,837.93,companiesmarketcap_semis,2026-09-02,Local ticker used; ADR noted
+Advanced Micro Devices Inc.,AMD,AMD,,United States,Fabless CPU GPU accelerator,750.30,companiesmarketcap_semis,2026-09-02,Core semiconductor designer
+ASML Holding N.V.,ASML,ASML.AS,ASML,Netherlands,Semiconductor equipment lithography,639.58,companiesmarketcap_semis,2026-09-02,ADR used as primary ticker
+ChangXin Memory Technologies Inc.,688825.SS,688825.SS,,China,Memory,573.25,companiesmarketcap_semis,2026-09-02,DRAM memory manufacturer
+Intel Corporation,INTC,INTC,,United States,IDM foundry CPU,470.30,companiesmarketcap_semis,2026-09-02,IDM and foundry
+Lam Research Corporation,LRCX,LRCX,,United States,Semiconductor equipment etch deposition,363.13,companiesmarketcap_semis,2026-09-02,Wafer fabrication equipment
+Applied Materials Inc.,AMAT,AMAT,,United States,Semiconductor equipment materials engineering,350.65,companiesmarketcap_semis,2026-09-02,Wafer fabrication equipment
+Arm Holdings plc,ARM,ARM,,United Kingdom,Semiconductor IP CPU architecture,250.78,companiesmarketcap_semis,2026-09-02,IP licensing and compute platforms
+Texas Instruments Incorporated,TXN,TXN,,United States,Analog embedded IDM,231.36,companiesmarketcap_semis,2026-09-02,Analog and embedded processing
+SanDisk Corporation,SNDK,SNDK,,United States,Memory storage,229.40,macrotrends_sandisk,2026-09-02,NAND flash memory and SSDs
+KLA Corporation,KLAC,KLAC,,United States,Process control metrology equipment,223.27,companiesmarketcap_semis,2026-09-02,Inspection and metrology
+MediaTek Inc.,2454.TW,2454.TW,,Taiwan,Fabless mobile connectivity,214.90,companiesmarketcap_semis,2026-09-02,Mobile and connectivity SoCs
+Marvell Technology Inc.,MRVL,MRVL,,United States,Fabless data infrastructure,189.07,companiesmarketcap_semis,2026-09-02,Networking storage and custom silicon
+QUALCOMM Incorporated,QCOM,QCOM,,United States,Fabless mobile RF automotive,177.94,companiesmarketcap_semis,2026-09-02,Mobile SoCs and RF
+Kioxia Holdings Corporation,285A.T,285A.T,KXIAY,Japan,Memory storage,174.58,companiesmarketcap_kioxia,2026-09-02,NAND flash memory manufacturer
+Analog Devices Inc.,ADI,ADI,,United States,Analog mixed-signal,171.78,companiesmarketcap_semis,2026-09-02,Analog and mixed-signal chips
+Tokyo Electron Limited,8035.T,8035.T,TOELY,Japan,Semiconductor equipment,150.92,companiesmarketcap_semis,2026-09-02,Wafer fabrication equipment
+Advantest Corporation,6857.T,6857.T,ATEYY,Japan,Semiconductor test equipment,147.02,companiesmarketcap_semis,2026-09-02,ATE and test systems
+Cambricon Technologies Corporation Limited,688256.SS,688256.SS,,China,Fabless AI accelerator,103.67,companiesmarketcap_semis,2026-09-02,AI accelerator chips
+ASE Technology Holding Co. Ltd.,ASX,3711.TW,ASX,Taiwan,OSAT packaging test,97.45,companiesmarketcap_semis,2026-09-02,ADR used as primary ticker
+Cadence Design Systems Inc.,CDNS,CDNS,,United States,EDA software,93.30,macrotrends_cadence,2026-09-02,Electronic design automation for chip design
+Infineon Technologies AG,IFX.DE,IFX.DE,IFNNY,Germany,Power automotive MCU,83.36,companiesmarketcap_semis,2026-09-02,Local ticker used; OTC ADR noted
+Synopsys Inc.,SNPS,SNPS,,United States,EDA software IP,79.49,companiesmarketcap_semis,2026-09-02,EDA and semiconductor IP
+Semiconductor Manufacturing International Corporation,0981.HK,0981.HK,SMICY,China,Foundry,74.50,companiesmarketcap_semis,2026-09-02,Foundry
+NAURA Technology Group Co. Ltd.,002371.SZ,002371.SZ,,China,Semiconductor equipment,72.13,companiesmarketcap_semis,2026-09-02,Wafer fabrication equipment
+Shin-Etsu Chemical Co. Ltd.,4063.T,4063.T,SHECY,Japan,Semiconductor materials wafers,67.91,companiesmarketcap_shinetsu,2026-09-02,Silicon wafers and photomask substrates; diversified chemicals
+Monolithic Power Systems Inc.,MPWR,MPWR,,United States,Power management semiconductors,60.24,companiesmarketcap_semis,2026-09-02,Power management ICs
+NXP Semiconductors N.V.,NXPI,NXPI,,Netherlands,Automotive industrial semiconductors,56.08,companiesmarketcap_semis,2026-09-02,NASDAQ-listed ordinary shares
+Coherent Corp.,COHR,COHR,,United States,Photonics compound semiconductor materials,53.27,companiesmarketcap_semis,2026-09-02,Optoelectronics and compound semiconductor exposure
+Teradyne Inc.,TER,TER,,United States,Semiconductor test equipment,52.46,robinhood_teradyne,2026-09-02,ATE; significant semiconductor test exposure
+HOYA Corporation,7741.T,7741.T,HOCPY,Japan,Photomask blanks materials,51.35,companiesmarketcap_hoya,2026-09-02,Mask blanks and photomasks; diversified precision instruments
+United Microelectronics Corporation,UMC,2303.TW,UMC,Taiwan,Foundry,51.33,companiesmarketcap_semis,2026-09-02,ADR used as primary ticker
+Nanya Technology Corporation,2408.TW,2408.TW,,Taiwan,Memory,50.52,companiesmarketcap_semis,2026-09-02,DRAM memory
+Advanced Micro-Fabrication Equipment Inc. China,688012.SS,688012.SS,,China,Semiconductor equipment,49.08,companiesmarketcap_semis,2026-09-02,Etch and deposition equipment
+Unimicron Technology Corp.,3037.TW,3037.TW,,Taiwan,Advanced IC substrates,48.78,companiesmarketcap_unimicron,2026-09-02,IC substrates and PCBs
+Astera Labs Inc.,ALAB,ALAB,,United States,Fabless connectivity semiconductors,48.56,companiesmarketcap_semis,2026-09-02,Data center connectivity chips
+ASM International N.V.,ASM.AS,ASM.AS,ASMIY,Netherlands,Semiconductor equipment deposition,45.08,companiesmarketcap_semis,2026-09-02,ALD and epitaxy equipment
+STMicroelectronics N.V.,STM,STM,STM,Switzerland,IDM analog power MCU,44.06,companiesmarketcap_semis,2026-09-02,ADR used as primary ticker
+Cerebras Systems Inc.,CBRS,CBRS,,United States,AI accelerator systems,41.00,companiesmarketcap_semis,2026-09-02,Wafer-scale AI compute
+GigaDevice Semiconductor Inc.,603986.SS,603986.SS,,China,Memory MCU fabless,40.79,companiesmarketcap_semis,2026-09-02,NOR flash MCU and sensors
+Credo Technology Group Holding Ltd,CRDO,CRDO,,United States,Fabless connectivity semiconductors,38.83,companiesmarketcap_semis,2026-09-02,High-speed connectivity chips
+Microchip Technology Incorporated,MCHP,MCHP,,United States,MCU analog mixed-signal,38.77,companiesmarketcap_semis,2026-09-02,MCUs analog and embedded control
+DISCO Corporation,6146.T,6146.T,DSCSY,Japan,Semiconductor equipment dicing grinding,37.43,companiesmarketcap_semis,2026-09-02,Back-end wafer processing equipment
+Renesas Electronics Corporation,6723.T,6723.T,RNECY,Japan,Automotive industrial semiconductors,36.70,companiesmarketcap_semis,2026-09-02,MCUs SoCs analog and power
+IBIDEN Co. Ltd.,4062.T,4062.T,IBIDF,Japan,Advanced IC substrates,35.60,pitchbook_ibiden,2026-08-28,High-performance IC package substrates
+onsemi,ON,ON,,United States,Power analog image sensors,28.28,companiesmarketcap_semis,2026-09-02,Power and sensing semiconductors
+Hua Hong Semiconductor Limited,1347.HK,1347.HK,HUSKF,China,Foundry,26.03,companiesmarketcap_semis,2026-09-02,Specialty foundry
+Global Unichip Corporation,3443.TW,3443.TW,,Taiwan,ASIC design services,24.86,companiesmarketcap_semis,2026-09-02,ASIC design and turnkey services
+Qnity Electronics Inc.,Q,Q,,United States,Semiconductor materials electronics materials,24.16,companiesmarketcap_semis,2026-09-02,Electronics materials with semiconductor exposure
+GlobalFoundries Inc.,GFS,GFS,,United States,Foundry,24.10,companiesmarketcap_semis,2026-09-02,Specialty foundry
+Nan Ya Printed Circuit Board Corporation,8046.TW,8046.TW,,Taiwan,Advanced IC substrates,23.00,pitchbook_nanya_pcb,2026-08-21,IC substrates and PCBs
+Tower Semiconductor Ltd.,TSEM,TSEM,,Israel,Foundry,22.49,companiesmarketcap_semis,2026-09-02,NASDAQ-listed ordinary shares
+Lite-On Technology Corporation,2301.TW,2301.TW,,Taiwan,Optoelectronics electronic components,22.49,companiesmarketcap_semis,2026-09-02,Included as broad semiconductor-adjacent optoelectronics
+VAT Group AG,VACN.SW,VACN.SW,VACNY,Switzerland,Semiconductor equipment supplier vacuum valves,21.53,companiesmarketcap_vat,2026-09-02,Vacuum valves and systems with high semiconductor exposure
+MACOM Technology Solutions Holdings Inc.,MTSI,MTSI,,United States,RF microwave photonic semiconductors,20.00,companiesmarketcap_semis,2026-09-02,RF microwave and optical chips
+Entegris Inc.,ENTG,ENTG,,United States,Semiconductor materials contamination control,19.78,companiesmarketcap_semis,2026-09-02,Materials filtration and process solutions
+Technoprobe S.p.A.,TPRO.MI,TPRO.MI,,Italy,Semiconductor test equipment,19.52,companiesmarketcap_semis,2026-09-02,Probe cards and test interfaces
+Hwatsing Technology Co. Ltd.,688120.SS,688120.SS,,China,Semiconductor equipment CMP,18.51,companiesmarketcap_semis,2026-09-02,CMP equipment
+Lasertec Corporation,6920.T,6920.T,LSRCY,Japan,Semiconductor inspection equipment,18.13,companiesmarketcap_semis,2026-09-02,Mask and wafer inspection equipment
+BE Semiconductor Industries N.V.,BESI.AS,BESI.AS,BESIY,Netherlands,Semiconductor assembly equipment,17.47,companiesmarketcap_semis,2026-09-02,Advanced packaging assembly equipment
+Xi'an Eswin Material Technology Co. Ltd.,688783.SS,688783.SS,,China,Semiconductor materials wafers,17.40,companiesmarketcap_semis,2026-09-02,Silicon wafers and materials
+SiTime Corporation,SITM,SITM,,United States,Timing semiconductors MEMS,16.55,companiesmarketcap_semis,2026-09-02,MEMS timing devices
+Lattice Semiconductor Corporation,LSCC,LSCC,,United States,Fabless FPGA,15.86,companiesmarketcap_semis,2026-09-02,Low-power FPGAs
+Onto Innovation Inc.,ONTO,ONTO,,United States,Process control metrology equipment,15.67,companiesmarketcap_semis,2026-09-02,Inspection metrology and lithography process control
+SCREEN Holdings Co. Ltd.,7735.T,7735.T,DINRF,Japan,Semiconductor equipment,15.54,companiesmarketcap_semis,2026-09-02,Wafer cleaning and lithography track equipment
+VeriSilicon Microelectronics Shanghai Co. Ltd.,688521.SS,688521.SS,,China,Semiconductor IP design services,15.17,companiesmarketcap_semis,2026-09-02,IP licensing and chip design services
