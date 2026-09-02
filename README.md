@@ -1,28 +1,78 @@
 # Relative Valuation Matrix
 
-Starter repository for a semiconductor relative-valuation database.
+An updatable SQLite database for a broad global semiconductor equity universe.
 
-## Current Data
+The initial screen contains **100 public companies above $15 billion in market capitalization** and **4 near-threshold watchlist companies** as of September 1, 2026. The market-cap values are screening snapshots rather than live quotes.
 
-- `data/semiconductor_universe.csv` contains the initial stock universe.
-- Universe threshold: publicly traded companies with market cap above about USD 15 billion.
-- As-of date: September 2, 2026.
-- Scope is intentionally broad: chip designers, foundries, memory, EDA/IP, IDMs, semiconductor equipment, metrology/test, OSAT/packaging, semiconductor materials, and advanced IC substrate suppliers.
-- Exclusions are intentional for companies whose semiconductor exposure is too incidental relative to the rest of the business.
+## Universe definition
 
-## Ticker Rules
+Included businesses cover:
 
-- `primary_ticker` is the ticker to try first for lookups.
-- Major U.S.-listed ADRs/ADSs are used as the primary ticker where practical, for example `TSM`, `ASML`, `ASX`, `UMC`, and `STM`.
-- Local tickers are retained in `local_ticker`.
-- OTC ADRs are captured in `us_adr_ticker` when useful, but local tickers remain primary for many non-U.S. listings.
+- Fabless chip design and semiconductor IP
+- Integrated device manufacturers and memory producers
+- Foundries
+- EDA and chip-design software
+- Wafer-fabrication and semiconductor-test equipment
+- OSAT and advanced packaging
+- Silicon wafers, photomasks, process materials, and contamination control
+- IC package substrates and semiconductor test interfaces
+- Semiconductor lasers, image sensors, and other optoelectronics
 
-## Source Keys
+`core` means the company is principally a semiconductor or semiconductor-production business. `extended` means the company is diversified but has a large and strategically important semiconductor-enabling business. General electronics assembly, servers, passive components, and industrial suppliers with only incidental semiconductor exposure are excluded.
 
-- `companiesmarketcap_semis`: CompaniesMarketCap semiconductor market-cap ranking.
-- `companiesmarketcap_*`: CompaniesMarketCap company-specific market-cap pages.
-- `macrotrends_*`: Macrotrends market-cap pages.
-- `robinhood_teradyne`: Robinhood market snapshot for Teradyne.
-- `pitchbook_*`: PitchBook company profile market-cap snapshots.
+`included` rows cleared the $15B screen in the snapshot. `watchlist` rows sit just below it and are retained so daily price or FX movements can be updated without rediscovering the company.
 
-This is a first-pass seed. Borderline and semiconductor-adjacent names can be tightened or expanded as the datapoint set takes shape.
+## Files
+
+- `data/semiconductor_universe.csv`: company master plus the current market-cap screen
+- `data/alternate_listings.csv`: local listings, ADRs, ADSs, and useful ticker aliases
+- `data/datapoint_definitions.csv`: definitions for valuation datapoints
+- `data/datapoint_values.csv`: dated company datapoint values
+- `data/relative_valuation.sqlite`: generated query database
+- `database/schema.sql`: normalized SQLite schema
+- `scripts/build_database.py`: validates the CSV seeds and rebuilds SQLite atomically
+- `scripts/query_database.py`: looks up a company by name or any stored ticker
+- `scripts/set_datapoint.py`: adds or replaces a datapoint and rebuilds SQLite
+- `.github/workflows/rebuild-database.yml`: regenerates SQLite after CSV or schema updates
+
+The CSV files are the source of truth. The SQLite file is generated from them and should not be edited directly.
+When source files are edited on GitHub, the included workflow validates them and commits the regenerated database automatically.
+
+## Build and query
+
+Only Python 3 and its standard library are required.
+
+```bash
+python scripts/build_database.py
+python scripts/query_database.py NVDA
+python scripts/query_database.py 2330.TW --datapoint market_cap_usd_bn
+python scripts/query_database.py "Sony Group" --json
+```
+
+Queries accept a company id, exact or partial English company name, raw ticker, or exchange-qualified lookup symbol.
+
+## Add a datapoint
+
+New datapoints do not require a schema change. The first write creates the definition; later writes reuse it.
+
+```bash
+python scripts/set_datapoint.py NVDA forward_pe 31.4 \
+  --as-of 2026-09-02 \
+  --type numeric \
+  --label "Forward P/E" \
+  --unit x
+
+python scripts/query_database.py NVDA --datapoint forward_pe
+```
+
+Text and date values are also supported with `--type text` and `--type date`.
+
+## Update the universe
+
+1. Edit `data/semiconductor_universe.csv` or `data/alternate_listings.csv`.
+2. Keep `market_cap_as_of` in ISO `YYYY-MM-DD` format.
+3. Set `universe_status` to `included` only when `market_cap_usd_bn` is above `15.0`.
+4. Run `python scripts/build_database.py`.
+5. Commit both the CSV changes and regenerated SQLite file.
+
+The build fails on duplicate companies, duplicate ticker aliases, invalid dates, unknown foreign keys, malformed datapoints, or an included company at or below the threshold.
