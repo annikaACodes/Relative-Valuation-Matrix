@@ -11,6 +11,9 @@ CREATE TABLE companies (
     country TEXT NOT NULL,
     segment TEXT NOT NULL,
     inclusion_tier TEXT NOT NULL CHECK (inclusion_tier IN ('core', 'extended')),
+    preferred_ticker TEXT NOT NULL COLLATE NOCASE,
+    fiscal_year_is_calendar INTEGER NOT NULL CHECK (fiscal_year_is_calendar IN (0, 1)),
+    fiscal_year_end TEXT NOT NULL,
     notes TEXT NOT NULL DEFAULT '',
     active INTEGER NOT NULL DEFAULT 1 CHECK (active IN (0, 1))
 ) WITHOUT ROWID;
@@ -74,6 +77,13 @@ SELECT
     c.country,
     c.segment,
     c.inclusion_tier,
+    c.preferred_ticker AS ticker,
+    c.fiscal_year_is_calendar,
+    c.fiscal_year_end,
+    CASE
+        WHEN c.fiscal_year_is_calendar = 1 THEN 'Standard (Dec 31)'
+        ELSE 'Non-standard (' || c.fiscal_year_end || ')'
+    END AS fiscal_year,
     s.universe_status,
     s.market_cap_usd_bn,
     s.screening_date AS market_cap_as_of,
