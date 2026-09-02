@@ -68,7 +68,7 @@ def print_datapoint(result: dict[str, object], key: str) -> int:
     normalized = key.casefold()
     if normalized in {"market_cap", "market_cap_usd_bn", "market_cap_usd"}:
         print(
-            f"{company['company_name']} ({company['primary_lookup_symbol']}): "
+            f"{company['company_name']} ({company['ticker']}): "
             f"${company['market_cap_usd_bn']:.2f}B as of {company['market_cap_as_of']}"
         )
         return 0
@@ -85,7 +85,7 @@ def print_datapoint(result: dict[str, object], key: str) -> int:
     value = match["numeric_value"] if match["numeric_value"] is not None else match["text_value"]
     unit = f" {match['unit']}" if match["unit"] else ""
     print(
-        f"{company['company_name']} ({company['primary_lookup_symbol']}): "
+        f"{company['company_name']} ({company['ticker']}): "
         f"{match['label']} = {value}{unit} as of {match['as_of_date']}"
     )
     return 0
@@ -126,12 +126,13 @@ def main() -> int:
 
     company = result["company"]
     assert isinstance(company, dict)
-    print(f"{company['company_name']} ({company['primary_lookup_symbol']})")
+    print(f"{company['company_name']} ({company['ticker']})")
     print(
         f"{company['country']} | {company['segment']} | {company['inclusion_tier']} | "
         f"{company['universe_status']}"
     )
     print(f"Screen market cap: ${company['market_cap_usd_bn']:.2f}B ({company['market_cap_as_of']})")
+    print(f"Fiscal year: {company['fiscal_year']}")
     if company["notes"]:
         print(f"Notes: {company['notes']}")
     print("Listings:")
@@ -153,4 +154,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

@@ -18,6 +18,7 @@ SCHEMA_PATH = ROOT / "database" / "schema.sql"
 DEFAULT_DB_PATH = DATA_DIR / "relative_valuation.sqlite"
 THRESHOLD_USD_BN = 15.0
 COMPANY_ID_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+NONSTANDARD_FISCAL_YEAR_RE = re.compile(r"^Non-standard \((.+)\)$")
 
 
 def read_rows(path: Path) -> list[dict[str, str]]:
@@ -50,6 +51,15 @@ def valid_date(value: str, field: str) -> str:
         raise ValueError(f"Invalid ISO date for {field}: {value}") from exc
 
 
+def parse_fiscal_year(value: str, company_id: str) -> tuple[int, str]:
+    if value == "Standard (Dec 31)":
+        return 1, "Dec 31"
+    match = NONSTANDARD_FISCAL_YEAR_RE.fullmatch(value)
+    if not match:
+        raise ValueError(f"Invalid Fiscal Year for {company_id}: {value}")
+    return 0, match.group(1)
+
+
 def load_and_validate() -> tuple[list[dict[str, str]], ...]:
     universe_path = DATA_DIR / "semiconductor_universe.csv"
     alternates_path = DATA_DIR / "alternate_listings.csv"
@@ -68,7 +78,7 @@ def load_and_validate() -> tuple[list[dict[str, str]], ...]:
             "company_id", "company_name", "country", "segment", "inclusion_tier",
             "universe_status", "market_cap_usd_bn", "market_cap_as_of",
             "primary_ticker", "primary_exchange", "primary_currency",
-            "primary_lookup_symbol", "notes",
+            "primary_lookup_symbol", "Ticker", "Fiscal Year", "notes",
         },
     )
     require_columns(
@@ -91,6 +101,7 @@ def load_and_validate() -> tuple[list[dict[str, str]], ...]:
     company_names: set[str] = set()
     listing_keys: set[tuple[str, str]] = set()
     lookup_symbols: set[str] = set()
+    company_symbols: dict[str, set[str]] = {}
 
     for row in universe:
         company_id = row["company_id"]
@@ -99,6 +110,7 @@ def load_and_validate() -> tuple[list[dict[str, str]], ...]:
         if company_id in company_ids:
             raise ValueError(f"Duplicate company_id: {company_id}")
         company_ids.add(company_id)
+        company_symbols[company_id] = set()
 
         name_key = row["company_name"].casefold()
         if not name_key or name_key in company_names:
@@ -116,6 +128,9 @@ def load_and_validate() -> tuple[list[dict[str, str]], ...]:
         if row["universe_status"] == "included" and market_cap <= THRESHOLD_USD_BN:
             raise ValueError(f"Included company is not above ${THRESHOLD_USD_BN:g}B: {company_id}")
         valid_date(row["market_cap_as_of"], f"market_cap_as_of/{company_id}")
+        if not row["Ticker"]:
+            raise ValueError(f"Blank Ticker for {company_id}")
+        parse_fiscal_year(row["Fiscal Year"], company_id)
 
         listing_key = (row["primary_ticker"].casefold(), row["primary_exchange"].casefold())
         lookup_key = row["primary_lookup_symbol"].casefold()
@@ -123,6 +138,9 @@ def load_and_validate() -> tuple[list[dict[str, str]], ...]:
             raise ValueError(f"Duplicate primary listing for {company_id}")
         listing_keys.add(listing_key)
         lookup_symbols.add(lookup_key)
+        company_symbols[company_id].update(
+            {row["primary_ticker"].casefold(), row["primary_lookup_symbol"].casefold()}
+        )
 
     for row in alternates:
         if row["company_id"] not in company_ids:
@@ -135,6 +153,15 @@ def load_and_validate() -> tuple[list[dict[str, str]], ...]:
             raise ValueError(f"Duplicate lookup_symbol: {row['lookup_symbol']}")
         listing_keys.add(listing_key)
         lookup_symbols.add(lookup_key)
+        company_symbols[row["company_id"]].update(
+            {row["ticker"].casefold(), row["lookup_symbol"].casefold()}
+        )
+
+    for row in universe:
+        if row["Ticker"].casefold() not in company_symbols[row["company_id"]]:
+            raise ValueError(
+                f"Preferred Ticker is not a stored listing for {row['company_id']}: {row['Ticker']}"
+            )
 
     definition_keys: set[str] = set()
     definition_types: dict[str, str] = {}
@@ -195,16 +222,23 @@ def build_database(output_path: Path) -> dict[str, int]:
                 ("database_name", "Relative Valuation Matrix"),
                 ("generated_at_utc", generated_at),
                 ("market_cap_threshold_usd_bn", str(THRESHOLD_USD_BN)),
-                ("seed_format_version", "2"),
+                ("seed_format_version", "3"),
             ],
         )
 
         for row in universe:
+            fiscal_year_is_calendar, fiscal_year_end = parse_fiscal_year(
+                row["Fiscal Year"], row["company_id"]
+            )
             connection.execute(
-                "INSERT INTO companies VALUES (?, ?, ?, ?, ?, ?, 1)",
+                """INSERT INTO companies
+                   (company_id, company_name, country, segment, inclusion_tier,
+                    preferred_ticker, fiscal_year_is_calendar, fiscal_year_end, notes, active)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)""",
                 (
                     row["company_id"], row["company_name"], row["country"], row["segment"],
-                    row["inclusion_tier"], row["notes"],
+                    row["inclusion_tier"], row["Ticker"], fiscal_year_is_calendar,
+                    fiscal_year_end, row["notes"],
                 ),
             )
             connection.execute(
