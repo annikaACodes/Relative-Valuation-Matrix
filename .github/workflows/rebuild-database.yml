@@ -7,6 +7,7 @@ on:
       - "data/*.csv"
       - "database/schema.sql"
       - "scripts/*.py"
+      - ".github/workflows/rebuild-database.yml"
   workflow_dispatch:
 
 permissions:
@@ -29,6 +30,8 @@ jobs:
         run: |
           python scripts/query_database.py NVDA
           python scripts/query_database.py 2330.TW --datapoint market_cap_usd_bn
+          python scripts/query_database.py SKHY
+          python scripts/query_database.py KXIAY
 
       - name: Commit generated database when changed
         run: |
