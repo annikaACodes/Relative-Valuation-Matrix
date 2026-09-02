@@ -6,7 +6,7 @@ on:
     paths:
       - "data/*.csv"
       - "database/schema.sql"
-      - "scripts/build_database.py"
+      - "scripts/*.py"
   workflow_dispatch:
 
 permissions:
@@ -24,6 +24,11 @@ jobs:
 
       - name: Rebuild and validate SQLite
         run: python scripts/build_database.py
+
+      - name: Smoke-test ticker lookup
+        run: |
+          python scripts/query_database.py NVDA
+          python scripts/query_database.py 2330.TW --datapoint market_cap_usd_bn
 
       - name: Commit generated database when changed
         run: |
