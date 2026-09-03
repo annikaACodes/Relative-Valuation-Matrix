@@ -6,6 +6,12 @@ The forward dataset was collected on 2026-09-03. It covers CY2027 and CY2028 for
 
 SEC filings do not contain 2027-2029 consensus estimates, so filings are historical and calendar anchors rather than the source of forward estimates. Local share prices are dated in `data/valuation_inputs.csv`. The EUR/USD and HKD/USD conversions are the 2026-09-03 Frankfurter rates; all other quote and reporting currencies already match.
 
+## Process summary
+
+Forward fiscal estimates primarily come from MarketScreener analyst pages, with a source URL retained on every raw row, including NVIDIA and TSMC. SEC filings provide historical and accounting-basis checks because they do not contain future consensus estimates.
+
+The code determines actual fiscal year-end dates and day-weights adjacent fiscal years. Earnings, FCF, EBITDA, debt, and shares are calendarized as totals; EPS and FCF/share are calculated only afterward. Required EUR/USD and HKD/USD conversions use Frankfurter.
+
 ## Calendarization
 
 For a target calendar year `Y`, the code calculates the actual fiscal year-end date from each company's rule. The fiscal-year weight is:
