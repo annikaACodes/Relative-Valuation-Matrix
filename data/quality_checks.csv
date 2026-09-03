@@ -258,8 +258,8 @@ disco,2027,1731.819523,1743,0.641,31.2042,,,forecast,https://www.marketscreener.
 disco,2028,2118.735480,2123,0.201,25.5058,,,forecast,https://www.marketscreener.com/quote/stock/DISCO-CORPORATION-6491471/finances/
 renesas,2024,122.259494,120.8,1.208,27.1063,,,historical,https://www.marketscreener.com/quote/stock/RENESAS-ELECTRONICS-CORPO-6496219/finances/
 renesas,2025,-28.583142,-28.65,0.233,,,,historical,https://www.marketscreener.com/quote/stock/RENESAS-ELECTRONICS-CORPO-6496219/finances/
-renesas,2026,159.336116,160.8,0.910,20.6095,20,3.047,forecast,https://www.marketscreener.com/quote/stock/RENESAS-ELECTRONICS-CORPO-6496219/finances/
-renesas,2027,188.533556,187,0.820,17.7219,17.2,3.034,forecast,https://www.marketscreener.com/quote/stock/RENESAS-ELECTRONICS-CORPO-6496219/finances/
+renesas,2026,159.336116,160.8,0.910,20.4664,20,2.332,forecast,https://www.marketscreener.com/quote/stock/RENESAS-ELECTRONICS-CORPO-6496219/finances/
+renesas,2027,188.533556,187,0.820,17.5989,17.2,2.319,forecast,https://www.marketscreener.com/quote/stock/RENESAS-ELECTRONICS-CORPO-6496219/finances/
 renesas,2028,217.623745,211.6,2.847,15.2281,,,forecast,https://www.marketscreener.com/quote/stock/RENESAS-ELECTRONICS-CORPO-6496219/finances/
 montage,2024,1.233415,1.25,1.327,156.5572,,,historical,https://www.marketscreener.com/quote/stock/MONTAGE-TECHNOLOGY-CO-LTD-65220645/finances/
 montage,2025,1.968353,1.96,0.426,98.1023,,,historical,https://www.marketscreener.com/quote/stock/MONTAGE-TECHNOLOGY-CO-LTD-65220645/finances/
@@ -298,8 +298,8 @@ onsemi,2027,4.220265,4.244,0.559,17.1395,17,0.821,forecast,https://www.marketscr
 onsemi,2028,5.530269,5.851,5.482,13.1531,,,forecast,https://www.marketscreener.com/quote/stock/ON-SEMICONDUCTOR-CORPORAT-10340/finances/
 hua-hong,2024,0.033815,0.034,0.544,440.4836,,,historical,https://www.marketscreener.com/quote/stock/HUA-HONG-GRACE-SEMICONDUC-18231307/finances/
 hua-hong,2025,0.031584,0.032,1.301,471.6047,,,historical,https://www.marketscreener.com/quote/stock/HUA-HONG-GRACE-SEMICONDUC-18231307/finances/
-hua-hong,2026,0.113597,0.1103,2.989,135.0403,140,3.543,forecast,https://www.marketscreener.com/quote/stock/HUA-HONG-GRACE-SEMICONDUC-18231307/finances/
-hua-hong,2027,0.164698,0.1566,5.171,95.1146,98.5,3.437,forecast,https://www.marketscreener.com/quote/stock/HUA-HONG-GRACE-SEMICONDUC-18231307/finances/
+hua-hong,2026,0.113597,0.1103,2.989,138.0438,140,1.397,forecast,https://www.marketscreener.com/quote/stock/HUA-HONG-GRACE-SEMICONDUC-18231307/finances/
+hua-hong,2027,0.164698,0.1566,5.171,97.2301,98.5,1.289,forecast,https://www.marketscreener.com/quote/stock/HUA-HONG-GRACE-SEMICONDUC-18231307/finances/
 hua-hong,2028,0.204290,0.1908,7.070,72.9108,,,forecast,https://www.marketscreener.com/quote/stock/HUA-HONG-GRACE-SEMICONDUC-18231307/finances/
 changchuan,2024,0.731352,0.72,1.577,378.9008,,,historical,https://www.marketscreener.com/quote/stock/HANGZHOU-CHANGCHUAN-TECHN-36818718/finances/
 changchuan,2025,2.098035,2.09,0.384,132.0807,,,historical,https://www.marketscreener.com/quote/stock/HANGZHOU-CHANGCHUAN-TECHN-36818718/finances/

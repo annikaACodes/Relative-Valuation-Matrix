@@ -105,8 +105,8 @@ microchip,2027,USD,0.246575,0.753425,2.9221,4.0004,24.44,19.48,1.12,direct,0,0,p
 microchip,2028,USD,0.248634,0.751366,3.737,4.3732,19.11,17.22,0.62,direct,0,0,published-consensus-eps,2026-09-03,2026-09-03
 disco,2027,JPY,0.246575,0.753425,2029.3014,1495.8214,26.63,33.61,-1.32,direct,0,0,published-consensus-eps,2026-09-03,2026-09-03
 disco,2028,JPY,0.248634,0.751366,2344.653,1840.0965,23.05,26.78,-1.44,direct,0,0,published-consensus-eps,2026-09-03,2026-09-03
-renesas,2027,JPY,1,0,187,224.9808,17.72,15.24,0.3,direct,0,0,published-consensus-eps,2026-09-03,2026-09-03
-renesas,2028,JPY,1,0,211.6,248.8661,15.66,12.72,-0.33,direct,0,0,published-consensus-eps,2026-09-03,2026-09-03
+renesas,2027,JPY,1,0,187,224.9808,17.6,15.14,0.3,direct,0,0,published-consensus-eps,2026-09-03,2026-09-03
+renesas,2028,JPY,1,0,211.6,248.8661,15.55,12.62,-0.33,direct,0,0,published-consensus-eps,2026-09-03,2026-09-03
 sj-semiconductor,2027,,1,0,,,,,,partial,0,5,published-consensus-eps,2026-09-03,
 sj-semiconductor,2028,,1,0,,,,,,partial,0,5,published-consensus-eps,2026-09-03,
 moore-threads,2027,,1,0,,,,,,partial,0,5,published-consensus-eps,2026-09-03,
@@ -127,8 +127,8 @@ yuanjie,2027,CNY,1,0,10.97,-0.0241,138.47,,-0.29,direct,0,0,published-consensus-
 yuanjie,2028,CNY,1,0,22.31,6.8183,68.09,221.42,-0.35,direct,0,0,published-consensus-eps,2026-09-03,2026-09-03
 onsemi,2027,USD,1,0,4.244,5.2066,17.14,14.08,0.08,direct,0,0,published-consensus-eps,2026-09-03,2026-09-03
 onsemi,2028,USD,1,0,5.851,6.3933,12.43,11.39,0.01,direct,0,0,published-consensus-eps,2026-09-03,2026-09-03
-hua-hong,2027,USD,1,0,0.1566,-0.4948,95.11,,-0.44,direct,0,0,published-consensus-eps,2026-09-03,2026-09-03
-hua-hong,2028,USD,1,0,0.1908,-0.2513,78.07,,-0.35,direct,0,0,published-consensus-eps,2026-09-03,2026-09-03
+hua-hong,2027,USD,1,0,0.1566,-0.4948,97.23,,-0.44,direct,0,0,published-consensus-eps,2026-09-03,2026-09-03
+hua-hong,2028,USD,1,0,0.1908,-0.2513,79.8,,-0.35,direct,0,0,published-consensus-eps,2026-09-03,2026-09-03
 changchuan,2027,CNY,1,0,4.811,,57.6,,-0.58,partial,0,1,published-consensus-eps,2026-09-03,2026-09-03
 changchuan,2028,CNY,1,0,6.675,,41.51,,-0.59,partial,0,1,published-consensus-eps,2026-09-03,2026-09-03
 winbond,2027,TWD,1,0,52.28,45.5982,3.47,2.86,-0.73,direct,0,0,published-consensus-eps,2026-09-03,2026-09-03
