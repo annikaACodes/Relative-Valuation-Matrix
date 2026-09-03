@@ -41,7 +41,7 @@ If FY(Y+1) is missing and the uncovered part of the calendar year is no more tha
 
 ## Accuracy checks
 
-For calendar-year reporters, fiscal and calendar years are identical. Across 65 available P/E checks against the published web ratios, the median absolute difference is 0.12%, the 90th percentile is 3.32%, 63 of 65 are within 5%, and the maximum is 8.43%. The residual differences reflect intraday/delayed quote timing and rounding.
+For calendar-year reporters, fiscal and calendar years are identical. Across 65 available CY2027/CY2028 P/E checks against the published web ratios, the median absolute difference is 0.11%, the 90th percentile is 3.20%, 63 of 65 are within 5%, and the maximum is 8.43%. The residual differences reflect intraday/delayed quote timing and rounding. The `computed_pe` field in `data/quality_checks.csv` uses the same consensus-EPS basis as the final output.
 
 Across 481 available fiscal observations, reported net income divided by diluted shares differs from published consensus EPS by a median 1.05% and a 90th percentile of 5.58%. That is primarily the difference between GAAP-style net income and adjusted consensus EPS. The output therefore uses reconstructed consensus earnings; `data/quality_checks.csv` preserves this basis check.
 
