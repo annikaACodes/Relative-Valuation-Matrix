@@ -70,6 +70,61 @@ CREATE TABLE datapoint_values (
 
 CREATE INDEX datapoint_values_key_idx ON datapoint_values(datapoint_key, as_of_date);
 
+CREATE TABLE fiscal_forecasts (
+    company_id TEXT NOT NULL REFERENCES companies(company_id) ON DELETE CASCADE,
+    fiscal_year INTEGER NOT NULL,
+    fiscal_period TEXT NOT NULL,
+    reporting_currency TEXT NOT NULL,
+    net_income REAL,
+    income_scale TEXT,
+    ebitda REAL,
+    fcf REAL,
+    fcf_scale TEXT,
+    net_debt REAL,
+    net_debt_scale TEXT,
+    diluted_shares_thousands REAL,
+    source_eps REAL,
+    share_source_method TEXT NOT NULL,
+    source_url TEXT NOT NULL,
+    source_retrieved_at TEXT NOT NULL,
+    PRIMARY KEY (company_id, fiscal_year)
+) WITHOUT ROWID;
+
+CREATE TABLE valuation_inputs (
+    company_id TEXT PRIMARY KEY REFERENCES companies(company_id) ON DELETE CASCADE,
+    valuation_date TEXT NOT NULL,
+    price REAL,
+    price_currency TEXT,
+    price_source_url TEXT,
+    forecast_source_url TEXT,
+    input_status TEXT NOT NULL,
+    reporting_currency TEXT,
+    price_to_reporting_fx REAL,
+    fx_source_url TEXT
+) WITHOUT ROWID;
+
+CREATE TABLE calendarized_metrics (
+    company_id TEXT NOT NULL REFERENCES companies(company_id) ON DELETE CASCADE,
+    calendar_year INTEGER NOT NULL,
+    reporting_currency TEXT,
+    fiscal_year_weight REAL NOT NULL,
+    next_fiscal_year_weight REAL NOT NULL,
+    eps REAL,
+    fcf_per_share REAL,
+    pe REAL,
+    ev_to_fcf REAL,
+    net_leverage REAL,
+    calculation_quality TEXT NOT NULL CHECK (calculation_quality IN ('direct', 'flat-tail', 'partial')),
+    tail_imputed INTEGER NOT NULL CHECK (tail_imputed IN (0, 1)),
+    missing_input_count INTEGER NOT NULL,
+    earnings_basis TEXT NOT NULL,
+    valuation_date TEXT,
+    forecast_source_date TEXT,
+    PRIMARY KEY (company_id, calendar_year)
+) WITHOUT ROWID;
+
+CREATE INDEX calendarized_metrics_year_idx ON calendarized_metrics(calendar_year);
+
 CREATE VIEW current_universe AS
 SELECT
     c.company_id,
@@ -114,3 +169,22 @@ WHERE NOT EXISTS (
       AND newer.datapoint_key = dv.datapoint_key
       AND newer.as_of_date > dv.as_of_date
 );
+
+CREATE VIEW valuation_matrix AS
+SELECT
+    c.company_id,
+    c.company_name,
+    c.preferred_ticker AS ticker,
+    MAX(CASE WHEN m.calendar_year = 2027 THEN m.eps END) AS cy2027_eps,
+    MAX(CASE WHEN m.calendar_year = 2027 THEN m.fcf_per_share END) AS cy2027_fcf_per_share,
+    MAX(CASE WHEN m.calendar_year = 2027 THEN m.pe END) AS cy2027_pe,
+    MAX(CASE WHEN m.calendar_year = 2027 THEN m.ev_to_fcf END) AS cy2027_ev_to_fcf,
+    MAX(CASE WHEN m.calendar_year = 2027 THEN m.net_leverage END) AS cy2027_net_leverage,
+    MAX(CASE WHEN m.calendar_year = 2028 THEN m.eps END) AS cy2028_eps,
+    MAX(CASE WHEN m.calendar_year = 2028 THEN m.fcf_per_share END) AS cy2028_fcf_per_share,
+    MAX(CASE WHEN m.calendar_year = 2028 THEN m.pe END) AS cy2028_pe,
+    MAX(CASE WHEN m.calendar_year = 2028 THEN m.ev_to_fcf END) AS cy2028_ev_to_fcf,
+    MAX(CASE WHEN m.calendar_year = 2028 THEN m.net_leverage END) AS cy2028_net_leverage
+FROM companies AS c
+LEFT JOIN calendarized_metrics AS m ON m.company_id = c.company_id
+GROUP BY c.company_id, c.company_name, c.preferred_ticker;
