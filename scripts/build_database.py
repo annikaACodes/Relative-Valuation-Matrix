@@ -65,11 +65,17 @@ def load_and_validate() -> tuple[list[dict[str, str]], ...]:
     alternates_path = DATA_DIR / "alternate_listings.csv"
     definitions_path = DATA_DIR / "datapoint_definitions.csv"
     values_path = DATA_DIR / "datapoint_values.csv"
+    fiscal_forecasts_path = DATA_DIR / "fiscal_forecasts.csv"
+    valuation_inputs_path = DATA_DIR / "valuation_inputs.csv"
+    calendarized_metrics_path = DATA_DIR / "calendarized_metrics.csv"
 
     universe = read_rows(universe_path)
     alternates = read_rows(alternates_path)
     definitions = read_rows(definitions_path)
     values = read_rows(values_path)
+    fiscal_forecasts = read_rows(fiscal_forecasts_path)
+    valuation_inputs = read_rows(valuation_inputs_path)
+    calendarized_metrics = read_rows(calendarized_metrics_path)
 
     require_columns(
         universe_path,
@@ -95,6 +101,35 @@ def load_and_validate() -> tuple[list[dict[str, str]], ...]:
         values_path,
         values,
         {"company_id", "datapoint_key", "as_of_date", "numeric_value", "text_value", "source_note"},
+    )
+    require_columns(
+        fiscal_forecasts_path,
+        fiscal_forecasts,
+        {
+            "company_id", "fiscal_year", "fiscal_period", "reporting_currency",
+            "net_income", "income_scale", "ebitda", "fcf", "fcf_scale",
+            "net_debt", "net_debt_scale", "diluted_shares_thousands", "source_eps",
+            "share_source_method", "source_url", "source_retrieved_at",
+        },
+    )
+    require_columns(
+        valuation_inputs_path,
+        valuation_inputs,
+        {
+            "company_id", "valuation_date", "price", "price_currency",
+            "price_source_url", "forecast_source_url", "input_status",
+            "reporting_currency", "price_to_reporting_fx", "fx_source_url",
+        },
+    )
+    require_columns(
+        calendarized_metrics_path,
+        calendarized_metrics,
+        {
+            "company_id", "calendar_year", "reporting_currency", "fiscal_year_weight",
+            "next_fiscal_year_weight", "eps", "fcf_per_share", "pe", "ev_to_fcf",
+            "net_leverage", "calculation_quality", "tail_imputed", "missing_input_count",
+            "earnings_basis", "valuation_date", "forecast_source_date",
+        },
     )
 
     company_ids: set[str] = set()
@@ -202,11 +237,54 @@ def load_and_validate() -> tuple[list[dict[str, str]], ...]:
             if definition_types[datapoint_key] == "date":
                 valid_date(text, f"date_value/{company_id}/{datapoint_key}")
 
-    return universe, alternates, definitions, values
+    forecast_keys: set[tuple[str, int]] = set()
+    for row in fiscal_forecasts:
+        company_id = row["company_id"]
+        fiscal_year = int(row["fiscal_year"])
+        if company_id not in company_ids:
+            raise ValueError(f"Unknown fiscal forecast company_id: {company_id}")
+        key = (company_id, fiscal_year)
+        if key in forecast_keys:
+            raise ValueError(f"Duplicate fiscal forecast: {key}")
+        forecast_keys.add(key)
+        valid_date(row["source_retrieved_at"], f"source_retrieved_at/{company_id}/{fiscal_year}")
+
+    valuation_company_ids: set[str] = set()
+    for row in valuation_inputs:
+        company_id = row["company_id"]
+        if company_id not in company_ids or company_id in valuation_company_ids:
+            raise ValueError(f"Unknown or duplicate valuation input: {company_id}")
+        valuation_company_ids.add(company_id)
+        valid_date(row["valuation_date"], f"valuation_date/{company_id}")
+    if valuation_company_ids != company_ids:
+        raise ValueError("valuation_inputs.csv must contain exactly one row per company")
+
+    metric_keys: set[tuple[str, int]] = set()
+    for row in calendarized_metrics:
+        company_id = row["company_id"]
+        calendar_year = int(row["calendar_year"])
+        if company_id not in company_ids or calendar_year not in {2027, 2028}:
+            raise ValueError(f"Invalid calendarized metric row: {company_id}/{calendar_year}")
+        key = (company_id, calendar_year)
+        if key in metric_keys:
+            raise ValueError(f"Duplicate calendarized metric: {key}")
+        metric_keys.add(key)
+        if row["calculation_quality"] not in {"direct", "flat-tail", "partial"}:
+            raise ValueError(f"Invalid calculation_quality: {key}")
+    if len(metric_keys) != len(company_ids) * 2:
+        raise ValueError("calendarized_metrics.csv must contain 2027 and 2028 for every company")
+
+    return (
+        universe, alternates, definitions, values,
+        fiscal_forecasts, valuation_inputs, calendarized_metrics,
+    )
 
 
 def build_database(output_path: Path) -> dict[str, int]:
-    universe, alternates, definitions, values = load_and_validate()
+    (
+        universe, alternates, definitions, values,
+        fiscal_forecasts, valuation_inputs, calendarized_metrics,
+    ) = load_and_validate()
     output_path.parent.mkdir(parents=True, exist_ok=True)
     temp_path = output_path.with_suffix(output_path.suffix + ".tmp")
     if temp_path.exists():
@@ -222,7 +300,7 @@ def build_database(output_path: Path) -> dict[str, int]:
                 ("database_name", "Relative Valuation Matrix"),
                 ("generated_at_utc", generated_at),
                 ("market_cap_threshold_usd_bn", str(THRESHOLD_USD_BN)),
-                ("seed_format_version", "3"),
+                ("seed_format_version", "4"),
             ],
         )
 
@@ -284,6 +362,70 @@ def build_database(output_path: Path) -> dict[str, int]:
                 for row in values
             ],
         )
+        numeric_forecast_columns = {
+            "net_income", "ebitda", "fcf", "net_debt",
+            "diluted_shares_thousands", "source_eps",
+        }
+        connection.executemany(
+            """INSERT INTO fiscal_forecasts VALUES
+               (:company_id, :fiscal_year, :fiscal_period, :reporting_currency,
+                :net_income, :income_scale, :ebitda, :fcf, :fcf_scale,
+                :net_debt, :net_debt_scale, :diluted_shares_thousands, :source_eps,
+                :share_source_method, :source_url, :source_retrieved_at)""",
+            [
+                {
+                    **row,
+                    "fiscal_year": int(row["fiscal_year"]),
+                    **{
+                        column: float(row[column]) if row[column] else None
+                        for column in numeric_forecast_columns
+                    },
+                }
+                for row in fiscal_forecasts
+            ],
+        )
+        connection.executemany(
+            """INSERT INTO valuation_inputs VALUES
+               (:company_id, :valuation_date, :price, :price_currency,
+                :price_source_url, :forecast_source_url, :input_status,
+                :reporting_currency, :price_to_reporting_fx, :fx_source_url)""",
+            [
+                {
+                    **row,
+                    "price": float(row["price"]) if row["price"] else None,
+                    "price_to_reporting_fx": (
+                        float(row["price_to_reporting_fx"])
+                        if row["price_to_reporting_fx"] else None
+                    ),
+                }
+                for row in valuation_inputs
+            ],
+        )
+        numeric_metric_columns = {
+            "fiscal_year_weight", "next_fiscal_year_weight", "eps", "fcf_per_share",
+            "pe", "ev_to_fcf", "net_leverage",
+        }
+        connection.executemany(
+            """INSERT INTO calendarized_metrics VALUES
+               (:company_id, :calendar_year, :reporting_currency,
+                :fiscal_year_weight, :next_fiscal_year_weight, :eps, :fcf_per_share,
+                :pe, :ev_to_fcf, :net_leverage, :calculation_quality, :tail_imputed,
+                :missing_input_count, :earnings_basis, :valuation_date,
+                :forecast_source_date)""",
+            [
+                {
+                    **row,
+                    "calendar_year": int(row["calendar_year"]),
+                    "tail_imputed": int(row["tail_imputed"]),
+                    "missing_input_count": int(row["missing_input_count"]),
+                    **{
+                        column: float(row[column]) if row[column] else None
+                        for column in numeric_metric_columns
+                    },
+                }
+                for row in calendarized_metrics
+            ],
+        )
 
         bad_primary_count = connection.execute(
             """SELECT COUNT(*) FROM (
@@ -313,6 +455,8 @@ def build_database(output_path: Path) -> dict[str, int]:
         "watchlist": len(universe) - included,
         "listings": len(universe) + len(alternates),
         "datapoint_values": len(values),
+        "fiscal_forecasts": len(fiscal_forecasts),
+        "calendarized_metrics": len(calendarized_metrics),
     }
 
 

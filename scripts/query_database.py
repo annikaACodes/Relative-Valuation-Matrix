@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sqlite3
 import sys
 from pathlib import Path
@@ -55,10 +56,19 @@ def get_company(connection: sqlite3.Connection, company_id: str) -> dict[str, ob
            WHERE v.company_id = ? ORDER BY d.label""",
         (company_id,),
     ).fetchall()
+    valuation_metrics = connection.execute(
+        """SELECT calendar_year, reporting_currency, eps, fcf_per_share, pe,
+                  ev_to_fcf, net_leverage, calculation_quality, tail_imputed,
+                  missing_input_count, valuation_date, forecast_source_date
+           FROM calendarized_metrics
+           WHERE company_id = ? ORDER BY calendar_year""",
+        (company_id,),
+    ).fetchall()
     return {
         "company": dict(company),
         "listings": [dict(row) for row in listings],
         "datapoints": [dict(row) for row in datapoints],
+        "valuation_metrics": [dict(row) for row in valuation_metrics],
     }
 
 
@@ -70,6 +80,35 @@ def print_datapoint(result: dict[str, object], key: str) -> int:
         print(
             f"{company['company_name']} ({company['ticker']}): "
             f"${company['market_cap_usd_bn']:.2f}B as of {company['market_cap_as_of']}"
+        )
+        return 0
+
+    metric_match = re.fullmatch(
+        r"cy(?:20)?(27|28)_(eps|fcf_per_share|fcf_share|pe|ev_to_fcf|ev_fcf|net_leverage)",
+        normalized,
+    )
+    if metric_match:
+        year = 2000 + int(metric_match.group(1))
+        field = {
+            "fcf_share": "fcf_per_share",
+            "ev_fcf": "ev_to_fcf",
+        }.get(metric_match.group(2), metric_match.group(2))
+        metrics = result["valuation_metrics"]
+        assert isinstance(metrics, list)
+        metric = next((item for item in metrics if item["calendar_year"] == year), None)
+        value = metric.get(field) if metric else None
+        if value is None:
+            print(f"No value for '{key}' on {company['company_name']}.", file=sys.stderr)
+            return 3
+        unit = (
+            f" {metric['reporting_currency']}/ordinary share"
+            if field in {"eps", "fcf_per_share"}
+            else "x"
+        )
+        print(
+            f"{company['company_name']} ({company['ticker']}): "
+            f"CY{year} {field} = {value}{unit} "
+            f"[{metric['calculation_quality']}, valuation {metric['valuation_date']}]"
         )
         return 0
 
@@ -149,6 +188,17 @@ def main() -> int:
             print(f"  {item['datapoint_key']}: {value}{unit} ({item['as_of_date']})")
     else:
         print("Datapoints: none added yet")
+    metrics = result["valuation_metrics"]
+    assert isinstance(metrics, list)
+    print("Calendarized valuation metrics:")
+    for item in metrics:
+        currency = item["reporting_currency"] or "n/a"
+        print(
+            f"  CY{item['calendar_year']}: EPS {item['eps']} {currency}, "
+            f"FCF/share {item['fcf_per_share']} {currency}, P/E {item['pe']}, "
+            f"EV/FCF {item['ev_to_fcf']}, net leverage {item['net_leverage']} "
+            f"[{item['calculation_quality']}]"
+        )
     return 0
 
 
