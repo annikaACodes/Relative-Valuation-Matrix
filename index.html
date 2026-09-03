@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Calendar-normalized 2027 and 2028 valuation comparisons for the global semiconductor universe."
+    />
+    <title>Relative Valuation Matrix</title>
+    <link rel="stylesheet" href="dashboard/styles.css" />
+    <script defer src="dashboard/app.js"></script>
+  </head>
+  <body>
+    <header class="app-header">
+      <a class="brand" href="#matrix" aria-label="Relative Valuation Matrix home">
+        <span class="brand-mark" aria-hidden="true">RV</span>
+        <span class="brand-copy">
+          <strong>Relative Valuation Matrix</strong>
+          <small>Global semiconductors</small>
+        </span>
+      </a>
+
+      <nav class="view-tabs" aria-label="Dashboard views">
+        <button class="view-tab is-active" type="button" data-view="matrix" aria-current="page">
+          Matrix
+        </button>
+        <button class="view-tab" type="button" data-view="compare">
+          Compare
+          <span class="nav-count" id="navCompareCount">3</span>
+        </button>
+      </nav>
+
+      <div class="header-meta">
+        <span class="live-dot" aria-hidden="true"></span>
+        <span id="headerAsOf">Loading data</span>
+      </div>
+    </header>
+
+    <main class="app-main">
+      <section class="view is-active" id="matrixView" data-view-panel="matrix">
+        <div class="page-heading">
+          <div>
+            <p class="eyebrow">Semiconductor peer universe</p>
+            <h1>Valuation matrix</h1>
+          </div>
+          <button class="command-button" id="exportMatrixButton" type="button">
+            <span aria-hidden="true">&#8595;</span>
+            Export view
+          </button>
+        </div>
+
+        <div class="summary-strip" aria-label="Universe summary">
+          <div class="summary-item">
+            <span>Companies</span>
+            <strong id="companyCount">104</strong>
+          </div>
+          <div class="summary-item">
+            <span>Above $15B</span>
+            <strong id="includedCount">100</strong>
+          </div>
+          <div class="summary-item">
+            <span>CY2027 coverage</span>
+            <strong id="coverage2027">--</strong>
+          </div>
+          <div class="summary-item">
+            <span>CY2028 coverage</span>
+            <strong id="coverage2028">--</strong>
+          </div>
+          <div class="summary-item summary-item-wide">
+            <span>Market-cap snapshot</span>
+            <strong id="marketCapAsOf">--</strong>
+          </div>
+        </div>
+
+        <div class="toolbar matrix-toolbar">
+          <label class="search-field">
+            <span class="search-icon" aria-hidden="true"></span>
+            <span class="sr-only">Search companies</span>
+            <input id="matrixSearch" type="search" placeholder="Search company, ticker, country or segment" autocomplete="off" />
+          </label>
+
+          <label class="select-field">
+            <span>Business</span>
+            <select id="categoryFilter" aria-label="Filter by business category">
+              <option value="all">All businesses</option>
+            </select>
+          </label>
+
+          <div class="segmented-control" aria-label="Universe status">
+            <button class="is-active" type="button" data-status="all">All</button>
+            <button type="button" data-status="included">Included</button>
+            <button type="button" data-status="watchlist">Watchlist</button>
+          </div>
+
+          <label class="select-field coverage-filter">
+            <span>Coverage</span>
+            <select id="coverageFilter" aria-label="Filter by metric coverage">
+              <option value="all">All rows</option>
+              <option value="complete">Complete</option>
+              <option value="gaps">Has gaps</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="table-meta">
+          <span id="matrixResultCount">Loading companies...</span>
+          <div class="table-legend" aria-label="Calendar-year legend">
+            <span><i class="legend-swatch cy27"></i>CY2027</span>
+            <span><i class="legend-swatch cy28"></i>CY2028</span>
+            <span><i class="legend-swatch flat-tail"></i>Flat-tail</span>
+          </div>
+        </div>
+
+        <div class="table-shell" id="matrixTableShell">
+          <table class="matrix-table">
+            <thead>
+              <tr class="year-groups">
+                <th class="sticky-company" colspan="1" rowspan="2" scope="col">
+                  <button class="sort-button" type="button" data-sort="company_name">Company</button>
+                </th>
+                <th class="sticky-ticker" rowspan="2" scope="col">
+                  <button class="sort-button" type="button" data-sort="Ticker">Ticker</button>
+                </th>
+                <th rowspan="2" scope="col">
+                  <button class="sort-button" type="button" data-sort="market_cap_usd_bn">Market cap</button>
+                </th>
+                <th class="segment-column" rowspan="2" scope="col">Business</th>
+                <th class="year-group year-2027" colspan="5" scope="colgroup">CY2027</th>
+                <th class="year-group year-2028" colspan="5" scope="colgroup">CY2028</th>
+                <th class="compare-column" rowspan="2" scope="col"><span class="sr-only">Add to comparison</span></th>
+              </tr>
+              <tr class="metric-headers">
+                <th><button class="sort-button" type="button" data-sort="cy2027_eps">EPS</button></th>
+                <th><button class="sort-button" type="button" data-sort="cy2027_fcf">FCF/share</button></th>
+                <th><button class="sort-button" type="button" data-sort="cy2027_pe">P/E</button></th>
+                <th><button class="sort-button" type="button" data-sort="cy2027_ev_fcf">EV/FCF</button></th>
+                <th><button class="sort-button" type="button" data-sort="cy2027_leverage">Net lev.</button></th>
+                <th><button class="sort-button" type="button" data-sort="cy2028_eps">EPS</button></th>
+                <th><button class="sort-button" type="button" data-sort="cy2028_fcf">FCF/share</button></th>
+                <th><button class="sort-button" type="button" data-sort="cy2028_pe">P/E</button></th>
+                <th><button class="sort-button" type="button" data-sort="cy2028_ev_fcf">EV/FCF</button></th>
+                <th><button class="sort-button" type="button" data-sort="cy2028_leverage">Net lev.</button></th>
+              </tr>
+            </thead>
+            <tbody id="matrixBody"></tbody>
+          </table>
+          <div class="loading-state" id="matrixLoading">
+            <span class="loader" aria-hidden="true"></span>
+            <span>Loading valuation data</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" id="compareView" data-view-panel="compare" hidden>
+        <div class="page-heading compare-heading">
+          <div>
+            <p class="eyebrow">Selected peer set</p>
+            <h1>Company comparison</h1>
+          </div>
+          <div class="heading-actions">
+            <button class="command-button" id="copyLinkButton" type="button">
+              <span aria-hidden="true">&#9112;</span>
+              Copy link
+            </button>
+            <button class="command-button" id="exportCompareButton" type="button">
+              <span aria-hidden="true">&#8595;</span>
+              Export
+            </button>
+          </div>
+        </div>
+
+        <div class="compare-picker">
+          <div class="company-combobox">
+            <label for="companySearch">Add companies <span id="selectionLimit">3 / 10</span></label>
+            <div class="combobox-input-wrap">
+              <span class="search-icon" aria-hidden="true"></span>
+              <input
+                id="companySearch"
+                type="search"
+                role="combobox"
+                aria-autocomplete="list"
+                aria-controls="companyOptions"
+                aria-expanded="false"
+                placeholder="Search by company or ticker"
+                autocomplete="off"
+              />
+            </div>
+            <div class="company-options" id="companyOptions" role="listbox" hidden></div>
+          </div>
+          <div class="selected-companies" id="selectedCompanies" aria-label="Selected companies"></div>
+        </div>
+
+        <div class="peer-stats" id="peerStats" aria-label="Selected peer statistics"></div>
+
+        <div class="chart-legend compare-legend">
+          <span><i class="legend-swatch cy27"></i>CY2027</span>
+          <span><i class="legend-swatch cy28"></i>CY2028</span>
+          <span><i class="legend-swatch median"></i>Peer median</span>
+        </div>
+
+        <div class="charts-grid" id="comparisonCharts"></div>
+
+        <section class="change-section" aria-labelledby="changeSummaryTitle">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Year-over-year movement</p>
+              <h2 id="changeSummaryTitle">Forward change summary</h2>
+            </div>
+          </div>
+          <div class="change-table-shell">
+            <table class="change-table">
+              <thead>
+                <tr>
+                  <th>Company</th>
+                  <th>EPS growth</th>
+                  <th>FCF/share growth</th>
+                  <th>P/E change</th>
+                  <th>EV/FCF change</th>
+                  <th>Net leverage change</th>
+                </tr>
+              </thead>
+              <tbody id="changeTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+
+      <section class="error-state" id="errorState" hidden>
+        <strong>Data could not be loaded.</strong>
+        <span>Refresh the page or check that the repository CSV files are available.</span>
+        <button class="command-button" type="button" id="retryButton">Retry</button>
+      </section>
+    </main>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <footer class="app-footer">
+      <span>Calendar-normalized consensus estimates</span>
+      <span class="footer-separator" aria-hidden="true"></span>
+      <a href="docs/methodology.md">Methodology</a>
+      <a href="data/semiconductor_universe.csv">Source data</a>
+      <a href="https://github.com/annikaACodes/Relative-Valuation-Matrix">GitHub</a>
+    </footer>
+  </body>
+</html>
