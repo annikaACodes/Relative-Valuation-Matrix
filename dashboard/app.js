@@ -7,6 +7,7 @@ const DATA_PATHS = {
 
 const MAX_SELECTION = 10;
 const INSUFFICIENT_DATA = "Insufficient Data";
+const COMPARE_EMPTY = "&mdash;";
 const DEFAULT_SELECTION = ["nvidia", "tsmc", "broadcom"];
 const METRICS = [
   { key: "eps", label: "EPS", chart: "growth", unit: "reported currency / share" },
@@ -364,7 +365,8 @@ function metricCell(company, year, metric) {
   if (metric.key === "eps" || metric.key === "fcf") titleParts.push(company.reporting_currency);
   titleParts.push(`Quality: ${quality}`);
   const marker = quality === "flat-tail" ? '<i class="quality-marker" aria-label="Flat-tail estimate"></i>' : "";
-  return `<td title="${escapeHtml(titleParts.join(" | "))}">${value === null ? `<span class="metric-missing">${INSUFFICIENT_DATA}</span>` : `<span class="metric-value">${formatMetric(value, metric.key)}</span>${marker}`}</td>`;
+  const unit = value !== null && (metric.key === "eps" || metric.key === "fcf") ? `<small class="cell-unit">${escapeHtml(company.reporting_currency)}</small>` : "";
+  return `<td title="${escapeHtml(titleParts.join(" | "))}">${value === null ? `<span class="metric-missing">${INSUFFICIENT_DATA}</span>` : `<span class="metric-value">${formatMetric(value, metric.key)}${marker}</span>${unit}`}</td>`;
 }
 
 function setView(view, updateHash = true) {
@@ -502,15 +504,16 @@ function handleCompanySearchKeydown(event) {
 }
 
 function renderPeerStats(companies) {
+  const hasSelection = companies.length > 0;
   const stats = [
-    ["Selected companies", String(companies.length), "of 10"],
-    ["Median CY2027 P/E", multiple(median(companies.map((company) => company.cy2027_pe))), "peer set"],
-    ["Median CY2028 P/E", multiple(median(companies.map((company) => company.cy2028_pe))), "peer set"],
-    ["Median CY2027 EV/FCF", multiple(median(companies.map((company) => company.cy2027_ev_fcf))), "peer set"],
-    ["Median CY2028 EV/FCF", multiple(median(companies.map((company) => company.cy2028_ev_fcf))), "peer set"],
+    ["Selected companies", String(companies.length), "of 10", false],
+    ["Median CY2027 P/E", hasSelection ? multiple(median(companies.map((company) => company.cy2027_pe))) : COMPARE_EMPTY, "peer set", true],
+    ["Median CY2028 P/E", hasSelection ? multiple(median(companies.map((company) => company.cy2028_pe))) : COMPARE_EMPTY, "peer set", true],
+    ["Median CY2027 EV/FCF", hasSelection ? multiple(median(companies.map((company) => company.cy2027_ev_fcf))) : COMPARE_EMPTY, "peer set", true],
+    ["Median CY2028 EV/FCF", hasSelection ? multiple(median(companies.map((company) => company.cy2028_ev_fcf))) : COMPARE_EMPTY, "peer set", true],
   ];
   elements.peerStats.innerHTML = stats
-    .map(([label, value, note]) => `<div class="peer-stat"><span>${label}</span><strong>${value}<small>${note}</small></strong></div>`)
+    .map(([label, value, note, isMedian]) => `<div class="peer-stat ${isMedian ? "is-median" : ""}"><span>${label}</span><strong>${value}<small>${note}</small></strong></div>`)
     .join("");
 }
 
@@ -522,9 +525,11 @@ function metricPanel(metric, companies) {
   const title = metric.chart === "growth" ? `${metric.label} growth` : metric.label;
   const context = metric.chart === "growth" ? "CY2027 to CY2028 · reported currency" : metric.unit;
   const available = companies.filter((company) => company[`cy2027_${metric.key}`] !== null || company[`cy2028_${metric.key}`] !== null).length;
-  const summaryValue = metric.chart === "growth"
-    ? percent(median(companies.map((company) => growth(company[`cy2027_${metric.key}`], company[`cy2028_${metric.key}`]))))
-    : multiple(median(companies.map((company) => company[`cy2028_${metric.key}`])));
+  const summaryValue = !companies.length
+    ? COMPARE_EMPTY
+    : metric.chart === "growth"
+      ? percent(median(companies.map((company) => growth(company[`cy2027_${metric.key}`], company[`cy2028_${metric.key}`]))))
+      : multiple(median(companies.map((company) => company[`cy2028_${metric.key}`])));
 
   return `
     <section class="metric-panel" aria-labelledby="chart-${metric.key}">
@@ -533,7 +538,7 @@ function metricPanel(metric, companies) {
           <h2 id="chart-${metric.key}">${escapeHtml(title)}</h2>
           <p>${escapeHtml(context)}</p>
         </div>
-      <span class="metric-panel-summary">${available} of ${companies.length}<strong>${summaryValue}</strong></span>
+        <span class="metric-panel-summary">${available} of ${companies.length}<small>Peer median</small><strong>${summaryValue}</strong></span>
       </header>
       ${renderMetricChart(metric, companies)}
     </section>`;
@@ -613,12 +618,22 @@ function renderGrowthBars(metric, companies) {
 
 function renderLeverageChart(metric, companies) {
   const values = companies.flatMap((company) => [company.cy2027_leverage, company.cy2028_leverage]).filter(Number.isFinite);
-  const limit = Math.max(...values.map(Math.abs), 1) * 1.12;
+  let domainMin = -1;
+  let domainMax = 1;
+  if (values.length) {
+    const rawMin = Math.min(...values);
+    const rawMax = Math.max(...values);
+    const span = Math.max(rawMax - rawMin, 0.5);
+    const padding = Math.max(span * 0.15, 0.08);
+    domainMin = rawMin - padding;
+    domainMax = rawMax + padding;
+  }
+  const zeroPosition = domainMin <= 0 && domainMax >= 0 ? leveragePosition(0, domainMin, domainMax) : null;
   const rows = companies.map((company) => {
     const value2027 = company.cy2027_leverage;
     const value2028 = company.cy2028_leverage;
-    const position2027 = leveragePosition(value2027, limit);
-    const position2028 = leveragePosition(value2028, limit);
+    const position2027 = leveragePosition(value2027, domainMin, domainMax);
+    const position2028 = leveragePosition(value2028, domainMin, domainMax);
     const rangeLeft = Math.min(position2027 ?? 50, position2028 ?? 50);
     const rangeWidth = Math.abs((position2028 ?? 50) - (position2027 ?? 50));
     return `
@@ -626,6 +641,7 @@ function renderLeverageChart(metric, companies) {
         ${chartCompanyLabel(company)}
         <div class="leverage-visual">
           <span class="leverage-track" aria-label="CY2027 ${multiple(value2027)}, CY2028 ${multiple(value2028)}">
+            ${zeroPosition === null ? "" : `<i class="leverage-zero" style="left:${zeroPosition}%" title="Zero leverage"></i>`}
             ${value2027 !== null && value2028 !== null ? `<i class="leverage-range" style="left:${rangeLeft}%;width:${rangeWidth}%"></i>` : ""}
             ${value2027 === null ? "" : `<i class="leverage-dot cy27" style="left:${position2027}%" title="CY2027 ${multiple(value2027)}"></i>`}
             ${value2028 === null ? "" : `<i class="leverage-dot cy28" style="left:${position2028}%" title="CY2028 ${multiple(value2028)}"></i>`}
@@ -637,9 +653,9 @@ function renderLeverageChart(metric, companies) {
   return `<div class="metric-chart">${rows.join("")}</div>`;
 }
 
-function leveragePosition(value, limit) {
+function leveragePosition(value, domainMin, domainMax) {
   if (value === null) return null;
-  return Math.max(0, Math.min(100, 50 + (value / limit) * 50));
+  return Math.max(0, Math.min(100, ((value - domainMin) / (domainMax - domainMin)) * 100));
 }
 
 function chartCompanyLabel(company) {

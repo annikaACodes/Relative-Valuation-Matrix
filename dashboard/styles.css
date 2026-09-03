@@ -10,6 +10,8 @@
   --teal-100: #d9f3f0;
   --coral-600: #cb5947;
   --coral-100: #fae6e1;
+  --orange-600: #c96c2c;
+  --orange-300: #f0a260;
   --amber-600: #a76b08;
   --amber-100: #fff0cf;
   --ink: #10243f;
@@ -297,6 +299,14 @@ a {
   border-right: 1px solid var(--line);
 }
 
+.summary-item:first-child {
+  border-top: 3px solid #4b83b4;
+}
+
+.summary-item:last-child {
+  border-top: 3px solid #4f8d91;
+}
+
 .summary-item:last-child {
   border-right: 0;
 }
@@ -312,6 +322,10 @@ a {
   color: var(--navy-900);
   font-size: 1.32rem;
   font-variant-numeric: tabular-nums;
+}
+
+.summary-item:first-child strong {
+  color: #245b91;
 }
 
 .summary-item-wide strong {
@@ -475,7 +489,7 @@ a {
 .legend-swatch.median {
   width: 12px;
   height: 2px;
-  background: var(--coral-600);
+  background: var(--orange-600);
   border-radius: 0;
 }
 
@@ -488,7 +502,8 @@ a {
   position: relative;
   min-height: 360px;
   max-height: calc(100vh - 344px);
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
   background: var(--surface);
   border: 1px solid var(--line-strong);
   border-radius: var(--radius);
@@ -499,7 +514,7 @@ a {
 
 .matrix-table {
   width: 100%;
-  min-width: 2022px;
+  min-width: 0;
   border-collapse: separate;
   border-spacing: 0;
   table-layout: fixed;
@@ -518,23 +533,23 @@ a {
 }
 
 .matrix-table .company-col {
-  width: var(--company-width);
+  width: 19%;
 }
 
 .matrix-table .market-cap-col {
-  width: 118px;
+  width: 7%;
 }
 
 .matrix-table .business-col {
-  width: 258px;
+  width: 12%;
 }
 
 .matrix-table .metric-col {
-  width: var(--metric-width);
+  width: 5.8%;
 }
 
 .matrix-table .action-col {
-  width: 56px;
+  width: 4%;
 }
 
 .matrix-table th {
@@ -563,6 +578,14 @@ a {
   text-align: right;
 }
 
+.matrix-table .metric-headers small {
+  display: block;
+  margin-top: 2px;
+  color: #7b8998;
+  font-size: 0.52rem;
+  font-weight: 650;
+}
+
 .matrix-table .company-column,
 .matrix-table td:nth-child(1),
 .matrix-table .segment-column,
@@ -572,6 +595,8 @@ a {
 
 .matrix-table .compare-column,
 .matrix-table td:last-child {
+  padding-right: 4px;
+  padding-left: 4px;
   text-align: center;
 }
 
@@ -590,6 +615,14 @@ a {
 .matrix-table tbody tr:hover td,
 .matrix-table tbody tr:hover td.sticky-company {
   background: #f3f8ff;
+}
+
+.matrix-table tbody td:nth-child(n + 4):nth-child(-n + 8) {
+  background: #f8fafd;
+}
+
+.matrix-table tbody td:nth-child(n + 9):nth-child(-n + 13) {
+  background: #f4f8fa;
 }
 
 .matrix-table tbody tr.is-selected td,
@@ -672,6 +705,7 @@ a {
   background: var(--year-2027);
   border: 1px solid #1d3f60;
   border-radius: 4px;
+  box-shadow: inset 3px 0 #72bec8;
   font-size: 0.65rem;
   font-weight: 800;
   text-align: center;
@@ -686,14 +720,26 @@ a {
 }
 
 .metric-value {
+  display: block;
   color: var(--ink);
   font-weight: 650;
 }
 
+.cell-unit {
+  display: block;
+  margin-top: 2px;
+  color: var(--faint);
+  font-size: 0.5rem;
+  font-weight: 700;
+}
+
 .metric-missing {
+  display: block;
   color: #7d8997;
-  font-size: 0.67rem;
+  font-size: 0.59rem;
   font-weight: 650;
+  line-height: 1.15;
+  white-space: normal;
 }
 
 .quality-marker {
@@ -930,6 +976,15 @@ a {
   border-right: 1px solid rgba(255, 255, 255, 0.12);
 }
 
+.peer-stat.is-median {
+  border-top: 3px solid var(--orange-600);
+  padding-top: 12px;
+}
+
+.peer-stat.is-median > span {
+  color: var(--orange-300);
+}
+
 .peer-stat:last-child {
   border-right: 0;
 }
@@ -1015,6 +1070,14 @@ a {
   margin-top: 2px;
   color: var(--navy-800);
   font-size: 0.85rem;
+}
+
+.metric-panel-summary small {
+  display: block;
+  margin-top: 3px;
+  color: var(--orange-600);
+  font-size: 0.56rem;
+  font-weight: 800;
 }
 
 .metric-chart {
@@ -1103,7 +1166,7 @@ a {
   top: -3px;
   bottom: -3px;
   width: 2px;
-  background: var(--coral-600);
+  background: var(--orange-600);
   border-radius: 1px;
 }
 
@@ -1129,8 +1192,7 @@ a {
   border-radius: 2px;
 }
 
-.growth-track::after,
-.leverage-track::after {
+.growth-track::after {
   position: absolute;
   top: -3px;
   bottom: -3px;
@@ -1138,6 +1200,14 @@ a {
   width: 1px;
   background: #94a3b3;
   content: "";
+}
+
+.leverage-zero {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  width: 1px;
+  background: #94a3b3;
 }
 
 .growth-bar {
@@ -1516,7 +1586,11 @@ a {
   }
 
   .matrix-table {
-    min-width: 1982px;
+    min-width: 1180px;
+  }
+
+  .table-shell {
+    overflow-x: auto;
   }
 
   .compare-heading {
