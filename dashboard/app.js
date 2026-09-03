@@ -6,6 +6,7 @@ const DATA_PATHS = {
 };
 
 const MAX_SELECTION = 10;
+const INSUFFICIENT_DATA = "Insufficient Data";
 const DEFAULT_SELECTION = ["nvidia", "tsmc", "broadcom"];
 const METRICS = [
   { key: "eps", label: "EPS", chart: "growth", unit: "reported currency / share" },
@@ -21,8 +22,6 @@ const state = {
   activeView: "matrix",
   query: "",
   category: "all",
-  status: "all",
-  coverage: "all",
   sortKey: "market_cap_usd_bn",
   sortDirection: "desc",
   optionIndex: -1,
@@ -41,13 +40,9 @@ function cacheElements() {
   const ids = [
     "headerAsOf",
     "companyCount",
-    "includedCount",
-    "coverage2027",
-    "coverage2028",
     "marketCapAsOf",
     "matrixSearch",
     "categoryFilter",
-    "coverageFilter",
     "matrixResultCount",
     "matrixBody",
     "matrixLoading",
@@ -84,21 +79,6 @@ function bindEvents() {
   elements.categoryFilter.addEventListener("change", (event) => {
     state.category = event.target.value;
     renderMatrix();
-  });
-
-  elements.coverageFilter.addEventListener("change", (event) => {
-    state.coverage = event.target.value;
-    renderMatrix();
-  });
-
-  document.querySelectorAll("[data-status]").forEach((button) => {
-    button.addEventListener("click", () => {
-      state.status = button.dataset.status;
-      document.querySelectorAll("[data-status]").forEach((item) => {
-        item.classList.toggle("is-active", item === button);
-      });
-      renderMatrix();
-    });
   });
 
   document.querySelectorAll("[data-sort]").forEach((button) => {
@@ -285,22 +265,12 @@ function populateCategories() {
 }
 
 function renderSummary() {
-  const included = state.companies.filter((company) => company.universe_status === "included").length;
-  const coverage2027 = coverageCount(2027);
-  const coverage2028 = coverageCount(2028);
   const dates = state.companies.map((company) => company.market_cap_as_of).filter(Boolean).sort();
   const asOf = dates.at(-1);
 
   elements.companyCount.textContent = String(state.companies.length);
-  elements.includedCount.textContent = String(included);
-  elements.coverage2027.textContent = `${coverage2027} / ${state.companies.length}`;
-  elements.coverage2028.textContent = `${coverage2028} / ${state.companies.length}`;
   elements.marketCapAsOf.textContent = formatDate(asOf);
   elements.headerAsOf.textContent = `Estimates as of ${formatDate(getLatestForecastDate())}`;
-}
-
-function coverageCount(year) {
-  return state.companies.filter((company) => METRICS.every((metric) => company[`cy${year}_${metric.key}`] !== null)).length;
 }
 
 function getLatestForecastDate() {
@@ -315,7 +285,7 @@ function renderMatrix() {
   elements.matrixResultCount.textContent = `${companies.length} ${companies.length === 1 ? "company" : "companies"}`;
   elements.matrixBody.innerHTML = companies.length
     ? companies.map((company) => matrixRow(company, selected.has(company.id))).join("")
-    : '<tr class="empty-row"><td colspan="15">No companies match the current filters.</td></tr>';
+    : '<tr class="empty-row"><td colspan="14">No companies match the current filters.</td></tr>';
 
   document.querySelectorAll("[data-sort]").forEach((button) => {
     if (button.dataset.sort === state.sortKey) button.dataset.direction = state.sortDirection;
@@ -329,12 +299,7 @@ function getFilteredCompanies() {
       const searchText = `${company.company_name} ${company.Ticker} ${company.country} ${company.segment}`.toLowerCase();
       const matchesQuery = !state.query || searchText.includes(state.query);
       const matchesCategory = state.category === "all" || company.category === state.category;
-      const matchesStatus = state.status === "all" || company.universe_status === state.status;
-      const complete = METRICS.every(
-        (metric) => company[`cy2027_${metric.key}`] !== null && company[`cy2028_${metric.key}`] !== null,
-      );
-      const matchesCoverage = state.coverage === "all" || (state.coverage === "complete" ? complete : !complete);
-      return matchesQuery && matchesCategory && matchesStatus && matchesCoverage;
+      return matchesQuery && matchesCategory;
     })
     .sort(compareCompanies);
 }
@@ -368,14 +333,13 @@ function matrixRow(company, isSelected) {
     <tr class="${isSelected ? "is-selected" : ""}">
       <td class="sticky-company">
         <div class="company-cell" title="${escapeHtml(company.company_name)}">
-          <span class="company-initials">${escapeHtml(initials(company.company_name))}</span>
+          <span class="company-ticker">${escapeHtml(company.Ticker)}</span>
           <span class="company-name-wrap">
             <span class="company-name">${escapeHtml(company.company_name)}</span>
             <span class="company-country">${escapeHtml(company.country)}</span>
           </span>
         </div>
       </td>
-      <td class="sticky-ticker"><span class="ticker-pill">${escapeHtml(company.Ticker)}</span>${company.universe_status === "watchlist" ? '<i class="status-dot" title="Watchlist"></i>' : ""}</td>
       <td>${formatMarketCap(company.market_cap_usd_bn)}</td>
       <td><span class="segment-text" title="${escapeHtml(company.segment)}">${escapeHtml(company.segment)}</span></td>
       ${metrics2027}
@@ -396,11 +360,11 @@ function matrixRow(company, isSelected) {
 function metricCell(company, year, metric) {
   const value = company[`cy${year}_${metric.key}`];
   const quality = company[`quality${year}`];
-  const titleParts = [`${metric.label}: ${value === null ? "Insufficient data" : formatFull(value, metric.key)}`];
+  const titleParts = [`${metric.label}: ${value === null ? INSUFFICIENT_DATA : formatFull(value, metric.key)}`];
   if (metric.key === "eps" || metric.key === "fcf") titleParts.push(company.reporting_currency);
   titleParts.push(`Quality: ${quality}`);
   const marker = quality === "flat-tail" ? '<i class="quality-marker" aria-label="Flat-tail estimate"></i>' : "";
-  return `<td title="${escapeHtml(titleParts.join(" | "))}">${value === null ? '<span class="metric-missing">--</span>' : `<span class="metric-value">${formatMetric(value, metric.key)}</span>${marker}`}</td>`;
+  return `<td title="${escapeHtml(titleParts.join(" | "))}">${value === null ? `<span class="metric-missing">${INSUFFICIENT_DATA}</span>` : `<span class="metric-value">${formatMetric(value, metric.key)}</span>${marker}`}</td>`;
 }
 
 function setView(view, updateHash = true) {
@@ -569,7 +533,7 @@ function metricPanel(metric, companies) {
           <h2 id="chart-${metric.key}">${escapeHtml(title)}</h2>
           <p>${escapeHtml(context)}</p>
         </div>
-        <span class="metric-panel-summary">${available} of ${companies.length}<strong>${summaryValue}</strong></span>
+      <span class="metric-panel-summary">${available} of ${companies.length}<strong>${summaryValue}</strong></span>
       </header>
       ${renderMetricChart(metric, companies)}
     </section>`;
@@ -608,13 +572,13 @@ function barLine(year, value, maxValue, medianValue) {
   const width = value === null ? 0 : Math.max(0, Math.min(100, (value / maxValue) * 100));
   const medianPosition = medianValue === null ? null : Math.max(0, Math.min(100, (medianValue / maxValue) * 100));
   return `
-    <div class="bar-line" aria-label="CY${year}: ${value === null ? "insufficient data" : `${formatMetric(value, "multiple")} times`}">
+    <div class="bar-line" aria-label="CY${year}: ${value === null ? INSUFFICIENT_DATA : `${formatMetric(value, "multiple")} times`}">
       <span class="bar-year">${String(year).slice(-2)}</span>
       <span class="bar-track">
         ${medianPosition === null ? "" : `<i class="median-line" style="left:${medianPosition}%"></i>`}
         ${value === null ? "" : `<i class="bar-fill cy${String(year).slice(-2)}" style="display:block;width:${width}%"></i>`}
       </span>
-      <span class="bar-value">${value === null ? "--" : multiple(value)}</span>
+      <span class="bar-value">${value === null ? INSUFFICIENT_DATA : multiple(value)}</span>
     </div>`;
 }
 
@@ -627,6 +591,7 @@ function renderGrowthBars(metric, companies) {
     const change = growth(value2027, value2028);
     const valid = Number.isFinite(change);
     const width = valid ? Math.min(50, (Math.min(Math.abs(change), 200) / scale) * 50) : 0;
+    const hasInputs = Number.isFinite(value2027) && Number.isFinite(value2028);
     const direction = !valid ? "neutral" : change > 0 ? "positive" : change < 0 ? "negative" : "neutral";
     const actuals = `${formatMetric(value2027, metric.key)} → ${formatMetric(value2028, metric.key)} ${company.reporting_currency}`;
     return `
@@ -637,7 +602,7 @@ function renderGrowthBars(metric, companies) {
             <span class="growth-track" title="${valid && Math.abs(change) > 200 ? "Visual capped at 200%; label shows full change" : ""}">
               ${valid ? `<i class="growth-bar ${direction}" style="width:${width}%"></i>` : ""}
             </span>
-            <span class="growth-value ${direction}">${valid ? signedPercent(change) : "n/m"}</span>
+            <span class="growth-value ${direction}">${valid ? signedPercent(change) : hasInputs ? "N/M" : INSUFFICIENT_DATA}</span>
           </div>
           <div class="reported-values">${escapeHtml(actuals)}</div>
         </div>
@@ -818,7 +783,7 @@ function median(values) {
 }
 
 function formatMetric(value, key) {
-  if (!Number.isFinite(value)) return "--";
+  if (!Number.isFinite(value)) return INSUFFICIENT_DATA;
   const absolute = Math.abs(value);
   if (key === "pe" || key === "ev_fcf" || key === "leverage" || key === "multiple") return formatNumber(value, 2);
   if (absolute >= 100000) return new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 2 }).format(value);
@@ -828,7 +793,7 @@ function formatMetric(value, key) {
 }
 
 function formatFull(value, key) {
-  if (!Number.isFinite(value)) return "Insufficient data";
+  if (!Number.isFinite(value)) return INSUFFICIENT_DATA;
   return new Intl.NumberFormat("en-US", { maximumFractionDigits: key === "eps" || key === "fcf" ? 4 : 2 }).format(value);
 }
 
@@ -837,43 +802,33 @@ function formatNumber(value, decimals = 2) {
 }
 
 function multiple(value) {
-  return Number.isFinite(value) ? `${formatNumber(value, 2)}x` : "--";
+  return Number.isFinite(value) ? `${formatNumber(value, 2)}x` : INSUFFICIENT_DATA;
 }
 
 function signedMultiple(value) {
-  if (!Number.isFinite(value)) return "--";
+  if (!Number.isFinite(value)) return INSUFFICIENT_DATA;
   return `${value > 0 ? "+" : ""}${formatNumber(value, 2)}x`;
 }
 
 function percent(value) {
-  return Number.isFinite(value) ? `${formatNumber(value, 1)}%` : "--";
+  return Number.isFinite(value) ? `${formatNumber(value, 1)}%` : INSUFFICIENT_DATA;
 }
 
 function signedPercent(value) {
-  if (!Number.isFinite(value)) return "--";
+  if (!Number.isFinite(value)) return INSUFFICIENT_DATA;
   return `${value > 0 ? "+" : ""}${formatNumber(value, 1)}%`;
 }
 
 function formatMarketCap(value) {
-  if (!Number.isFinite(value)) return "--";
+  if (!Number.isFinite(value)) return INSUFFICIENT_DATA;
   if (value >= 1000) return `$${formatNumber(value / 1000, 2)}T`;
   return `$${formatNumber(value, 1)}B`;
 }
 
 function formatDate(value) {
-  if (!value) return "--";
+  if (!value) return INSUFFICIENT_DATA;
   const date = new Date(`${value}T00:00:00`);
   return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" }).format(date);
-}
-
-function initials(name) {
-  return name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0])
-    .join("")
-    .toUpperCase();
 }
 
 function escapeHtml(value) {

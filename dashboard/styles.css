@@ -20,10 +20,12 @@
   --surface: #ffffff;
   --surface-subtle: #f7f9fc;
   --background: #eef3f8;
+  --year-2027: #294d70;
+  --year-2028: #4b6d86;
   --shadow: 0 8px 24px rgba(16, 36, 63, 0.08);
   --radius: 6px;
-  --company-width: 224px;
-  --ticker-width: 88px;
+  --company-width: 330px;
+  --metric-width: 126px;
 }
 
 * {
@@ -277,7 +279,7 @@ a {
 
 .summary-strip {
   display: grid;
-  grid-template-columns: repeat(4, minmax(120px, 1fr)) minmax(180px, 1.35fr);
+  grid-template-columns: minmax(220px, 1fr) minmax(220px, 1fr);
   margin-bottom: 16px;
   overflow: hidden;
   background: var(--surface);
@@ -328,7 +330,7 @@ a {
 }
 
 .matrix-toolbar {
-  grid-template-columns: minmax(270px, 2fr) minmax(180px, 1fr) auto minmax(145px, 0.7fr);
+  grid-template-columns: minmax(300px, 2fr) minmax(220px, 1fr);
 }
 
 .search-field,
@@ -463,11 +465,11 @@ a {
 }
 
 .legend-swatch.cy27 {
-  background: var(--blue-700);
+  background: var(--year-2027);
 }
 
 .legend-swatch.cy28 {
-  background: var(--teal-600);
+  background: var(--year-2028);
 }
 
 .legend-swatch.median {
@@ -497,7 +499,7 @@ a {
 
 .matrix-table {
   width: 100%;
-  min-width: 1580px;
+  min-width: 2022px;
   border-collapse: separate;
   border-spacing: 0;
   table-layout: fixed;
@@ -507,14 +509,32 @@ a {
 
 .matrix-table th,
 .matrix-table td {
-  height: 46px;
+  height: 54px;
   padding: 8px 10px;
-  overflow: hidden;
   border-right: 1px solid #e9eef3;
   border-bottom: 1px solid #e7edf3;
   text-align: right;
-  text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.matrix-table .company-col {
+  width: var(--company-width);
+}
+
+.matrix-table .market-cap-col {
+  width: 118px;
+}
+
+.matrix-table .business-col {
+  width: 258px;
+}
+
+.matrix-table .metric-col {
+  width: var(--metric-width);
+}
+
+.matrix-table .action-col {
+  width: 56px;
 }
 
 .matrix-table th {
@@ -543,48 +563,20 @@ a {
   text-align: right;
 }
 
-.matrix-table th:nth-child(1),
+.matrix-table .company-column,
 .matrix-table td:nth-child(1),
-.matrix-table th:nth-child(2),
-.matrix-table td:nth-child(2),
-.matrix-table th:nth-child(4),
-.matrix-table td:nth-child(4) {
-  text-align: left;
-}
-
-.matrix-table th:nth-child(1),
-.matrix-table td:nth-child(1) {
-  width: var(--company-width);
-}
-
-.matrix-table th:nth-child(2),
-.matrix-table td:nth-child(2) {
-  width: var(--ticker-width);
-}
-
-.matrix-table th:nth-child(3),
+.matrix-table .segment-column,
 .matrix-table td:nth-child(3) {
-  width: 98px;
-}
-
-.matrix-table th:nth-child(4),
-.matrix-table td:nth-child(4) {
-  width: 196px;
+  text-align: left;
 }
 
 .matrix-table .compare-column,
 .matrix-table td:last-child {
-  width: 48px;
   text-align: center;
 }
 
 .matrix-table .sticky-company {
   left: 0;
-  z-index: 8;
-}
-
-.matrix-table .sticky-ticker {
-  left: var(--company-width);
   z-index: 8;
 }
 
@@ -595,23 +587,13 @@ a {
   background: var(--surface);
 }
 
-.matrix-table td.sticky-ticker {
-  position: sticky;
-  left: var(--company-width);
-  z-index: 2;
-  background: var(--surface);
-  box-shadow: 5px 0 8px rgba(16, 36, 63, 0.04);
-}
-
 .matrix-table tbody tr:hover td,
-.matrix-table tbody tr:hover td.sticky-company,
-.matrix-table tbody tr:hover td.sticky-ticker {
+.matrix-table tbody tr:hover td.sticky-company {
   background: #f3f8ff;
 }
 
 .matrix-table tbody tr.is-selected td,
-.matrix-table tbody tr.is-selected td.sticky-company,
-.matrix-table tbody tr.is-selected td.sticky-ticker {
+.matrix-table tbody tr.is-selected td.sticky-company {
   background: #eaf3ff;
 }
 
@@ -621,12 +603,12 @@ a {
 
 .year-2027 {
   color: #ffffff !important;
-  background: var(--blue-700) !important;
+  background: var(--year-2027) !important;
 }
 
 .year-2028 {
   color: #ffffff !important;
-  background: var(--teal-600) !important;
+  background: var(--year-2028) !important;
 }
 
 .sort-button {
@@ -663,66 +645,44 @@ a {
   gap: 10px;
 }
 
-.company-initials {
-  display: grid;
-  width: 28px;
-  height: 28px;
-  flex: 0 0 28px;
-  place-items: center;
-  color: var(--navy-800);
-  background: var(--blue-100);
-  border-radius: 4px;
-  font-size: 0.61rem;
-  font-weight: 900;
-}
-
 .company-name-wrap {
   min-width: 0;
 }
 
 .company-name {
   display: block;
-  overflow: hidden;
   color: var(--ink);
   font-weight: 750;
-  text-overflow: ellipsis;
+  white-space: normal;
 }
 
 .company-country {
   display: block;
   margin-top: 2px;
-  overflow: hidden;
   color: var(--faint);
   font-size: 0.62rem;
-  text-overflow: ellipsis;
 }
 
-.ticker-pill {
+.company-ticker {
   display: inline-block;
-  padding: 3px 6px;
-  color: var(--blue-700);
-  background: var(--blue-050);
-  border: 1px solid #c9dcf7;
+  min-width: 78px;
+  flex: 0 0 auto;
+  padding: 5px 8px;
+  color: #ffffff;
+  background: var(--year-2027);
+  border: 1px solid #1d3f60;
   border-radius: 4px;
-  font-size: 0.68rem;
+  font-size: 0.65rem;
   font-weight: 800;
-}
-
-.status-dot {
-  display: inline-block;
-  width: 6px;
-  height: 6px;
-  margin-left: 5px;
-  background: var(--amber-600);
-  border-radius: 50%;
-  vertical-align: middle;
+  text-align: center;
+  white-space: nowrap;
 }
 
 .segment-text {
   display: block;
-  overflow: hidden;
   color: var(--muted);
-  text-overflow: ellipsis;
+  line-height: 1.3;
+  white-space: normal;
 }
 
 .metric-value {
@@ -731,7 +691,9 @@ a {
 }
 
 .metric-missing {
-  color: #a5afba;
+  color: #7d8997;
+  font-size: 0.67rem;
+  font-weight: 650;
 }
 
 .quality-marker {
@@ -1129,11 +1091,11 @@ a {
 }
 
 .bar-fill.cy27 {
-  background: var(--blue-700);
+  background: var(--year-2027);
 }
 
 .bar-fill.cy28 {
-  background: var(--teal-600);
+  background: var(--year-2028);
 }
 
 .median-line {
@@ -1154,7 +1116,7 @@ a {
 
 .growth-visual {
   display: grid;
-  grid-template-columns: minmax(100px, 1fr) 62px;
+  grid-template-columns: minmax(100px, 1fr) 104px;
   align-items: center;
   gap: 8px;
 }
@@ -1246,11 +1208,11 @@ a {
 }
 
 .leverage-dot.cy27 {
-  background: var(--blue-700);
+  background: var(--year-2027);
 }
 
 .leverage-dot.cy28 {
-  background: var(--teal-600);
+  background: var(--year-2028);
 }
 
 .leverage-values {
@@ -1263,11 +1225,11 @@ a {
 }
 
 .leverage-values .v27 {
-  color: var(--blue-700);
+  color: var(--year-2027);
 }
 
 .leverage-values .v28 {
-  color: var(--teal-600);
+  color: var(--year-2028);
 }
 
 .no-chart-data {
@@ -1453,7 +1415,7 @@ a {
   }
 
   .summary-strip {
-    grid-template-columns: repeat(5, minmax(125px, 1fr));
+    grid-template-columns: repeat(2, minmax(220px, 1fr));
     overflow-x: auto;
   }
 
@@ -1477,7 +1439,7 @@ a {
 
 @media (max-width: 760px) {
   :root {
-    --company-width: 190px;
+    --company-width: 290px;
   }
 
   .app-header {
@@ -1521,7 +1483,8 @@ a {
   }
 
   .summary-strip {
-    grid-template-columns: repeat(5, minmax(132px, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    overflow: visible;
   }
 
   .summary-item {
@@ -1553,13 +1516,7 @@ a {
   }
 
   .matrix-table {
-    min-width: 1510px;
-  }
-
-  .matrix-table .sticky-ticker,
-  .matrix-table td.sticky-ticker {
-    position: static;
-    box-shadow: none;
+    min-width: 1982px;
   }
 
   .compare-heading {
