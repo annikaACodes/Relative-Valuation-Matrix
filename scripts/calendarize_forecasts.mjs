@@ -246,14 +246,15 @@ writeCsv(OUTPUT_PATH, output, [
 
 const metricsByCompany = groupByCompany(output);
 const universeColumns = Object.keys(universe[0]).filter((key) => !METRIC_COLUMNS.includes(key));
+const displayMetric = (value) => value === "" || value == null ? "Insufficient Data" : value;
 for (const company of universe) {
   for (const year of [2027, 2028]) {
     const metric = (metricsByCompany.get(company.company_id) ?? []).find((row) => row.calendar_year === String(year));
-    company[`CY${year} EPS`] = metric?.eps ?? "";
-    company[`CY${year} FCF/share`] = metric?.fcf_per_share ?? "";
-    company[`CY${year} P/E`] = metric?.pe ?? "";
-    company[`CY${year} EV/FCF`] = metric?.ev_to_fcf ?? "";
-    company[`CY${year} Net leverage`] = metric?.net_leverage ?? "";
+    company[`CY${year} EPS`] = displayMetric(metric?.eps);
+    company[`CY${year} FCF/share`] = displayMetric(metric?.fcf_per_share);
+    company[`CY${year} P/E`] = displayMetric(metric?.pe);
+    company[`CY${year} EV/FCF`] = displayMetric(metric?.ev_to_fcf);
+    company[`CY${year} Net leverage`] = displayMetric(metric?.net_leverage);
   }
 }
 writeCsv(UNIVERSE_PATH, universe, [...universeColumns, ...METRIC_COLUMNS]);
