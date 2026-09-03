@@ -1,0 +1,4 @@
+company_id,fiscal_year,sec_operating_cash_flow_m,sec_capex_m,sec_fcf_m,source_historical_fcf_m,absolute_difference_m,sec_filing_url
+nvidia,2026,102718,6042,96676,96676,0,https://www.sec.gov/Archives/edgar/data/1045810/000104581026000021/nvda-20260125.htm
+qualcomm,2025,14012,1192,12820,12820,0,https://www.sec.gov/Archives/edgar/data/804328/000080432825000085/qcom-20250928.htm
+intel,2025,9697,14646,-4949,-4949,0,https://www.sec.gov/Archives/edgar/data/50863/000005086326000011/intc-20251227.htm
