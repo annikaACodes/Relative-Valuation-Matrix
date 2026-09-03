@@ -52,24 +52,12 @@
 
         <div class="summary-strip" aria-label="Universe summary">
           <div class="summary-item">
-            <span>Companies</span>
+            <span>Companies ~$15B and above</span>
             <strong id="companyCount">104</strong>
-          </div>
-          <div class="summary-item">
-            <span>Above $15B</span>
-            <strong id="includedCount">100</strong>
-          </div>
-          <div class="summary-item">
-            <span>CY2027 coverage</span>
-            <strong id="coverage2027">--</strong>
-          </div>
-          <div class="summary-item">
-            <span>CY2028 coverage</span>
-            <strong id="coverage2028">--</strong>
           </div>
           <div class="summary-item summary-item-wide">
             <span>Market-cap snapshot</span>
-            <strong id="marketCapAsOf">--</strong>
+            <strong id="marketCapAsOf">Loading</strong>
           </div>
         </div>
 
@@ -87,20 +75,6 @@
             </select>
           </label>
 
-          <div class="segmented-control" aria-label="Universe status">
-            <button class="is-active" type="button" data-status="all">All</button>
-            <button type="button" data-status="included">Included</button>
-            <button type="button" data-status="watchlist">Watchlist</button>
-          </div>
-
-          <label class="select-field coverage-filter">
-            <span>Coverage</span>
-            <select id="coverageFilter" aria-label="Filter by metric coverage">
-              <option value="all">All rows</option>
-              <option value="complete">Complete</option>
-              <option value="gaps">Has gaps</option>
-            </select>
-          </label>
         </div>
 
         <div class="table-meta">
@@ -114,15 +88,19 @@
 
         <div class="table-shell" id="matrixTableShell">
           <table class="matrix-table">
+            <colgroup>
+              <col class="company-col" />
+              <col class="market-cap-col" />
+              <col class="business-col" />
+              <col class="metric-col" span="10" />
+              <col class="action-col" />
+            </colgroup>
             <thead>
               <tr class="year-groups">
-                <th class="sticky-company" colspan="1" rowspan="2" scope="col">
+                <th class="sticky-company company-column" rowspan="2" scope="col">
                   <button class="sort-button" type="button" data-sort="company_name">Company</button>
                 </th>
-                <th class="sticky-ticker" rowspan="2" scope="col">
-                  <button class="sort-button" type="button" data-sort="Ticker">Ticker</button>
-                </th>
-                <th rowspan="2" scope="col">
+                <th class="market-cap-column" rowspan="2" scope="col">
                   <button class="sort-button" type="button" data-sort="market_cap_usd_bn">Market cap</button>
                 </th>
                 <th class="segment-column" rowspan="2" scope="col">Business</th>
@@ -239,7 +217,6 @@
       <span>Calendar-normalized consensus estimates</span>
       <span class="footer-separator" aria-hidden="true"></span>
       <a href="docs/methodology.md">Methodology</a>
-      <a href="data/semiconductor_universe.csv">Source data</a>
       <a href="https://github.com/annikaACodes/Relative-Valuation-Matrix">GitHub</a>
     </footer>
   </body>
