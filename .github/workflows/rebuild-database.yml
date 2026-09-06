@@ -38,6 +38,7 @@ jobs:
           python scripts/query_database.py KXIAY
           python scripts/query_database.py NVDA --datapoint cy2027_pe
           python scripts/query_database.py TSM --datapoint cy2028_eps
+          python scripts/query_database.py TSM --datapoint cy2028_eps_usd
 
       - name: Commit generated database when changed
         run: |
