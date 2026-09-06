@@ -9,12 +9,21 @@ const MAX_SELECTION = 10;
 const INSUFFICIENT_DATA = "Insufficient Data";
 const COMPARE_EMPTY = "&mdash;";
 const DEFAULT_SELECTION = ["nvidia", "tsmc", "broadcom"];
-const METRICS = [
+const COMPARE_METRICS = [
   { key: "eps", label: "EPS", chart: "growth", unit: "reported currency / share" },
   { key: "fcf", label: "FCF / share", chart: "growth", unit: "reported currency / share" },
   { key: "pe", label: "P / E", chart: "bars", unit: "multiple" },
   { key: "ev_fcf", label: "EV / FCF", chart: "bars", unit: "multiple" },
   { key: "leverage", label: "Net leverage", chart: "leverage", unit: "net debt / EBITDA" },
+];
+const MATRIX_METRICS = [
+  { key: "eps", label: "EPS", unit: "reported currency / ordinary share" },
+  { key: "eps_usd", label: "EPS (USD)", unit: "USD / ordinary share" },
+  { key: "fcf", label: "FCF / share", unit: "reported currency / ordinary share" },
+  { key: "fcf_usd", label: "FCF / share (USD)", unit: "USD / ordinary share" },
+  { key: "pe", label: "P / E", unit: "multiple" },
+  { key: "ev_fcf", label: "EV / FCF", unit: "multiple" },
+  { key: "leverage", label: "Net leverage", unit: "net debt / EBITDA" },
 ];
 
 const state = {
@@ -223,12 +232,16 @@ function normalizeCompany(row, calendarizedMap) {
     reporting_currency: year2027.reporting_currency || year2028.reporting_currency || row.primary_currency,
     forecast_source_date: [year2027.forecast_source_date, year2028.forecast_source_date].filter(Boolean).sort().at(-1) || "",
     cy2027_eps: numeric(row["CY2027 EPS"]),
+    cy2027_eps_usd: numeric(row["CY2027 EPS (USD)"]),
     cy2027_fcf: numeric(row["CY2027 FCF/share"]),
+    cy2027_fcf_usd: numeric(row["CY2027 FCF/share (USD)"]),
     cy2027_pe: numeric(row["CY2027 P/E"]),
     cy2027_ev_fcf: numeric(row["CY2027 EV/FCF"]),
     cy2027_leverage: numeric(row["CY2027 Net leverage"]),
     cy2028_eps: numeric(row["CY2028 EPS"]),
+    cy2028_eps_usd: numeric(row["CY2028 EPS (USD)"]),
     cy2028_fcf: numeric(row["CY2028 FCF/share"]),
+    cy2028_fcf_usd: numeric(row["CY2028 FCF/share (USD)"]),
     cy2028_pe: numeric(row["CY2028 P/E"]),
     cy2028_ev_fcf: numeric(row["CY2028 EV/FCF"]),
     cy2028_leverage: numeric(row["CY2028 Net leverage"]),
@@ -286,7 +299,7 @@ function renderMatrix() {
   elements.matrixResultCount.textContent = `${companies.length} ${companies.length === 1 ? "company" : "companies"}`;
   elements.matrixBody.innerHTML = companies.length
     ? companies.map((company) => matrixRow(company, selected.has(company.id))).join("")
-    : '<tr class="empty-row"><td colspan="14">No companies match the current filters.</td></tr>';
+    : '<tr class="empty-row"><td colspan="18">No companies match the current filters.</td></tr>';
 
   document.querySelectorAll("[data-sort]").forEach((button) => {
     if (button.dataset.sort === state.sortKey) button.dataset.direction = state.sortDirection;
@@ -326,8 +339,8 @@ function setSort(key) {
 }
 
 function matrixRow(company, isSelected) {
-  const metrics2027 = METRICS.map((metric) => metricCell(company, 2027, metric)).join("");
-  const metrics2028 = METRICS.map((metric) => metricCell(company, 2028, metric)).join("");
+  const metrics2027 = MATRIX_METRICS.map((metric) => metricCell(company, 2027, metric)).join("");
+  const metrics2028 = MATRIX_METRICS.map((metric) => metricCell(company, 2028, metric)).join("");
   const atLimit = state.selectedIds.length >= MAX_SELECTION && !isSelected;
   const actionLabel = isSelected ? `Remove ${company.company_name} from comparison` : `Add ${company.company_name} to comparison`;
   return `
@@ -362,10 +375,14 @@ function metricCell(company, year, metric) {
   const value = company[`cy${year}_${metric.key}`];
   const quality = company[`quality${year}`];
   const titleParts = [`${metric.label}: ${value === null ? INSUFFICIENT_DATA : formatFull(value, metric.key)}`];
-  if (metric.key === "eps" || metric.key === "fcf") titleParts.push(company.reporting_currency);
+  const isUsdPerShare = metric.key === "eps_usd" || metric.key === "fcf_usd";
+  const isLocalPerShare = metric.key === "eps" || metric.key === "fcf";
+  if (isUsdPerShare) titleParts.push("USD per underlying ordinary share");
+  if (isLocalPerShare) titleParts.push(`${company.reporting_currency} per underlying ordinary share`);
   titleParts.push(`Quality: ${quality}`);
   const marker = quality === "flat-tail" ? '<i class="quality-marker" aria-label="Flat-tail estimate"></i>' : "";
-  const unit = value !== null && (metric.key === "eps" || metric.key === "fcf") ? `<small class="cell-unit">${escapeHtml(company.reporting_currency)}</small>` : "";
+  const perShareUnit = isUsdPerShare ? "USD" : isLocalPerShare ? company.reporting_currency : "";
+  const unit = value !== null && perShareUnit ? `<small class="cell-unit">${escapeHtml(perShareUnit)}</small>` : "";
   return `<td title="${escapeHtml(titleParts.join(" | "))}">${value === null ? `<span class="metric-missing">${INSUFFICIENT_DATA}</span>` : `<span class="metric-value">${formatMetric(value, metric.key)}${marker}</span>${unit}`}</td>`;
 }
 
@@ -518,7 +535,7 @@ function renderPeerStats(companies) {
 }
 
 function renderCharts(companies) {
-  elements.comparisonCharts.innerHTML = METRICS.map((metric) => metricPanel(metric, companies)).join("");
+  elements.comparisonCharts.innerHTML = COMPARE_METRICS.map((metric) => metricPanel(metric, companies)).join("");
 }
 
 function metricPanel(metric, companies) {
@@ -739,12 +756,16 @@ function exportCompanies(companies, filename) {
     "Market Cap USD Bn",
     "Reporting Currency",
     "CY2027 EPS",
+    "CY2027 EPS (USD)",
     "CY2027 FCF/share",
+    "CY2027 FCF/share (USD)",
     "CY2027 P/E",
     "CY2027 EV/FCF",
     "CY2027 Net leverage",
     "CY2028 EPS",
+    "CY2028 EPS (USD)",
     "CY2028 FCF/share",
+    "CY2028 FCF/share (USD)",
     "CY2028 P/E",
     "CY2028 EV/FCF",
     "CY2028 Net leverage",
@@ -757,12 +778,16 @@ function exportCompanies(companies, filename) {
     company.market_cap_usd_bn,
     company.reporting_currency,
     company.cy2027_eps,
+    company.cy2027_eps_usd,
     company.cy2027_fcf,
+    company.cy2027_fcf_usd,
     company.cy2027_pe,
     company.cy2027_ev_fcf,
     company.cy2027_leverage,
     company.cy2028_eps,
+    company.cy2028_eps_usd,
     company.cy2028_fcf,
+    company.cy2028_fcf_usd,
     company.cy2028_pe,
     company.cy2028_ev_fcf,
     company.cy2028_leverage,
@@ -810,7 +835,8 @@ function formatMetric(value, key) {
 
 function formatFull(value, key) {
   if (!Number.isFinite(value)) return INSUFFICIENT_DATA;
-  return new Intl.NumberFormat("en-US", { maximumFractionDigits: key === "eps" || key === "fcf" ? 4 : 2 }).format(value);
+  const isPerShare = key === "eps" || key === "fcf" || key === "eps_usd" || key === "fcf_usd";
+  return new Intl.NumberFormat("en-US", { maximumFractionDigits: isPerShare ? 4 : 2 }).format(value);
 }
 
 function formatNumber(value, decimals = 2) {
