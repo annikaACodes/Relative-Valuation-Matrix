@@ -9,16 +9,22 @@ const DATA = path.join(ROOT, "data");
 const UNIVERSE_PATH = path.join(DATA, "semiconductor_universe.csv");
 const FORECAST_PATH = path.join(DATA, "fiscal_forecasts.csv");
 const VALUATION_PATH = path.join(DATA, "valuation_inputs.csv");
+const FX_PATH = path.join(DATA, "fx_rates.csv");
+const USD_OVERRIDE_PATH = path.join(DATA, "usd_per_share_overrides.csv");
 const OUTPUT_PATH = path.join(DATA, "calendarized_metrics.csv");
 
 const METRIC_COLUMNS = [
   "CY2027 EPS",
+  "CY2027 EPS (USD)",
   "CY2027 FCF/share",
+  "CY2027 FCF/share (USD)",
   "CY2027 P/E",
   "CY2027 EV/FCF",
   "CY2027 Net leverage",
   "CY2028 EPS",
+  "CY2028 EPS (USD)",
   "CY2028 FCF/share",
+  "CY2028 FCF/share (USD)",
   "CY2028 P/E",
   "CY2028 EV/FCF",
   "CY2028 Net leverage",
@@ -160,7 +166,15 @@ function fixed(value, digits) {
 const universe = parseCsv(fs.readFileSync(UNIVERSE_PATH, "utf8"));
 const forecasts = parseCsv(fs.readFileSync(FORECAST_PATH, "utf8"));
 const valuations = parseCsv(fs.readFileSync(VALUATION_PATH, "utf8"));
+const fxRates = parseCsv(fs.readFileSync(FX_PATH, "utf8"));
+const usdOverrides = parseCsv(fs.readFileSync(USD_OVERRIDE_PATH, "utf8"));
 const valuationByCompany = new Map(valuations.map((row) => [row.company_id, row]));
+const fxByDateAndCurrency = new Map(
+  fxRates.map((row) => [`${row.rate_date}:${row.currency}`, row]),
+);
+const overrideByCompanyAndYear = new Map(
+  usdOverrides.map((row) => [`${row.company_id}:${row.calendar_year}`, row]),
+);
 const groupByCompany = (rows) => {
   const grouped = new Map();
   for (const row of rows) {
@@ -206,6 +220,30 @@ for (const company of universe) {
     const shares = interpolate(series.shares, year, weight, true);
     const eps = earnings.value != null && shares.value > 0 ? earnings.value / shares.value : null;
     const fcfPerShare = fcf.value != null && shares.value > 0 ? fcf.value / shares.value : null;
+    const conversionDate = valuation?.valuation_date ?? "";
+    const fxRow = fxByDateAndCurrency.get(`${conversionDate}:${currency}`);
+    const usdPerReportingCurrency = numberOrNull(fxRow?.usd_per_currency);
+    if (currency && usdPerReportingCurrency == null) {
+      throw new Error(`Missing ${conversionDate} USD conversion rate for ${currency}`);
+    }
+    const override = overrideByCompanyAndYear.get(`${company.company_id}:${year}`);
+    const officialEpsUsd = numberOrNull(override?.eps_usd);
+    const officialFcfPerShareUsd = numberOrNull(override?.fcf_per_share_usd);
+    const epsUsd = officialEpsUsd ?? (
+      eps != null && usdPerReportingCurrency != null ? eps * usdPerReportingCurrency : null
+    );
+    const fcfPerShareUsd = officialFcfPerShareUsd ?? (
+      fcfPerShare != null && usdPerReportingCurrency != null
+        ? fcfPerShare * usdPerReportingCurrency
+        : null
+    );
+    const convertedMethod = currency === "USD" ? "reported-usd" : "official-fx";
+    const epsUsdMethod = officialEpsUsd != null
+      ? "official-usd-override"
+      : epsUsd != null ? convertedMethod : "";
+    const fcfPerShareUsdMethod = officialFcfPerShareUsd != null
+      ? "official-usd-override"
+      : fcfPerShareUsd != null ? convertedMethod : "";
     const pe = reportingPrice != null && eps > 0 ? reportingPrice / eps : null;
     const equityValue = reportingPrice != null && shares.value > 0 ? reportingPrice * shares.value : null;
     const evToFcf = equityValue != null && netDebt.value != null && fcf.value > 0
@@ -223,7 +261,12 @@ for (const company of universe) {
       fiscal_year_weight: fixed(weight, 6),
       next_fiscal_year_weight: fixed(1 - weight, 6),
       eps: fixed(eps, 4),
+      eps_usd: fixed(epsUsd, 4),
       fcf_per_share: fixed(fcfPerShare, 4),
+      fcf_per_share_usd: fixed(fcfPerShareUsd, 4),
+      usd_per_reporting_currency: fixed(usdPerReportingCurrency, 12),
+      eps_usd_method: epsUsdMethod,
+      fcf_per_share_usd_method: fcfPerShareUsdMethod,
       pe: fixed(pe, 2),
       ev_to_fcf: fixed(evToFcf, 2),
       net_leverage: fixed(netLeverage, 2),
@@ -239,9 +282,11 @@ for (const company of universe) {
 
 writeCsv(OUTPUT_PATH, output, [
   "company_id", "calendar_year", "reporting_currency", "fiscal_year_weight",
-  "next_fiscal_year_weight", "eps", "fcf_per_share", "pe", "ev_to_fcf",
-  "net_leverage", "calculation_quality", "tail_imputed", "missing_input_count",
-  "earnings_basis", "valuation_date", "forecast_source_date",
+  "next_fiscal_year_weight", "eps", "eps_usd", "fcf_per_share",
+  "fcf_per_share_usd", "usd_per_reporting_currency", "eps_usd_method",
+  "fcf_per_share_usd_method", "pe", "ev_to_fcf", "net_leverage",
+  "calculation_quality", "tail_imputed", "missing_input_count", "earnings_basis",
+  "valuation_date", "forecast_source_date",
 ]);
 
 const metricsByCompany = groupByCompany(output);
@@ -251,7 +296,9 @@ for (const company of universe) {
   for (const year of [2027, 2028]) {
     const metric = (metricsByCompany.get(company.company_id) ?? []).find((row) => row.calendar_year === String(year));
     company[`CY${year} EPS`] = displayMetric(metric?.eps);
+    company[`CY${year} EPS (USD)`] = displayMetric(metric?.eps_usd);
     company[`CY${year} FCF/share`] = displayMetric(metric?.fcf_per_share);
+    company[`CY${year} FCF/share (USD)`] = displayMetric(metric?.fcf_per_share_usd);
     company[`CY${year} P/E`] = displayMetric(metric?.pe);
     company[`CY${year} EV/FCF`] = displayMetric(metric?.ev_to_fcf);
     company[`CY${year} Net leverage`] = displayMetric(metric?.net_leverage);
@@ -262,5 +309,8 @@ writeCsv(UNIVERSE_PATH, universe, [...universeColumns, ...METRIC_COLUMNS]);
 const complete2027 = output.filter((row) => row.calendar_year === "2027" && row.missing_input_count === "0").length;
 const complete2028 = output.filter((row) => row.calendar_year === "2028" && row.missing_input_count === "0").length;
 const flatTail = output.filter((row) => row.tail_imputed === "1").length;
+const epsUsdCoverage = output.filter((row) => row.eps_usd !== "").length;
+const fcfUsdCoverage = output.filter((row) => row.fcf_per_share_usd !== "").length;
 console.log(`Wrote ${OUTPUT_PATH}`);
 console.log(`Complete rows: CY2027 ${complete2027}/${universe.length}; CY2028 ${complete2028}/${universe.length}; flat-tail rows ${flatTail}`);
+console.log(`USD coverage: EPS ${epsUsdCoverage}/${output.length}; FCF/share ${fcfUsdCoverage}/${output.length}`);

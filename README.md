@@ -44,6 +44,8 @@ Included businesses cover:
 - `scripts/set_datapoint.py`: adds or replaces a datapoint and rebuilds SQLite
 - `scripts/calendarize_forecasts.mjs`: day-weights fiscal forecasts into calendar years
 - `docs/methodology.md`: formulas, source process, coverage, and validation results
+- `data/fx_rates.csv`: dated official-reference FX inputs used for USD per-share metrics
+- `data/usd_per_share_overrides.csv`: higher-priority official USD per-share disclosures
 - `.github/workflows/rebuild-database.yml`: regenerates SQLite after CSV or schema updates
 
 The CSV files are the source of truth. The SQLite file is generated from them and should not be edited directly.
@@ -65,7 +67,7 @@ python scripts/query_database.py "Sony Group" --json
 Queries accept a company id, exact or partial English company name, raw ticker, or exchange-qualified lookup symbol.
 `Ticker` prefers a U.S.-listed share, ADR, ADS, or useful U.S. OTC symbol when one is available; otherwise it uses the primary local listing. `Fiscal Year` distinguishes calendar-year reporters from companies with non-standard year ends or 52/53-week rules.
 
-Forward keys use forms such as `cy2027_eps`, `cy2027_fcf_per_share`, `cy2027_pe`, `cy2027_ev_to_fcf`, and `cy2027_net_leverage` (and the same set for 2028). Per-share figures are in the issuer's reporting currency per underlying ordinary share; ratios are unitless. See `docs/methodology.md` before comparing ADR prices directly to per-share output.
+Forward keys use forms such as `cy2027_eps`, `cy2027_eps_usd`, `cy2027_fcf_per_share`, `cy2027_fcf_per_share_usd`, `cy2027_pe`, `cy2027_ev_to_fcf`, and `cy2027_net_leverage` (and the same set for 2028). Local and USD per-share figures are per underlying ordinary share; ratios are unitless. See `docs/methodology.md` before comparing ADR prices directly to per-share output.
 
 ## Add a datapoint
 
@@ -90,8 +92,10 @@ Text and date values are also supported with `--type text` and `--type date`.
 3. Use `Standard (Dec 31)` or `Non-standard (...)` in `Fiscal Year`.
 4. Ensure `Ticker` matches a primary or alternate listing stored for that company.
 5. Set `universe_status` to `included` only when `market_cap_usd_bn` is above `15.0`.
-6. Run `node scripts/calendarize_forecasts.mjs`.
-7. Run `python scripts/build_database.py`.
-8. Commit the CSV changes and regenerated SQLite file.
+6. Refresh `data/fx_rates.csv` for each valuation date and reporting currency.
+7. Add only issuer-published, underlying-share USD values to `data/usd_per_share_overrides.csv`.
+8. Run `node scripts/calendarize_forecasts.mjs`.
+9. Run `python scripts/build_database.py`.
+10. Commit the CSV changes and regenerated SQLite file.
 
 The build fails on duplicate companies, duplicate ticker aliases, invalid dates, unknown foreign keys, malformed datapoints, or an included company at or below the threshold.

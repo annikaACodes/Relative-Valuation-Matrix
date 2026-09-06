@@ -57,8 +57,10 @@ def get_company(connection: sqlite3.Connection, company_id: str) -> dict[str, ob
         (company_id,),
     ).fetchall()
     valuation_metrics = connection.execute(
-        """SELECT calendar_year, reporting_currency, eps, fcf_per_share, pe,
-                  ev_to_fcf, net_leverage, calculation_quality, tail_imputed,
+        """SELECT calendar_year, reporting_currency, eps, eps_usd,
+                  fcf_per_share, fcf_per_share_usd, usd_per_reporting_currency,
+                  eps_usd_method, fcf_per_share_usd_method, pe, ev_to_fcf,
+                  net_leverage, calculation_quality, tail_imputed,
                   missing_input_count, valuation_date, forecast_source_date
            FROM calendarized_metrics
            WHERE company_id = ? ORDER BY calendar_year""",
@@ -84,13 +86,14 @@ def print_datapoint(result: dict[str, object], key: str) -> int:
         return 0
 
     metric_match = re.fullmatch(
-        r"cy(?:20)?(27|28)_(eps|fcf_per_share|fcf_share|pe|ev_to_fcf|ev_fcf|net_leverage)",
+        r"cy(?:20)?(27|28)_(eps|eps_usd|fcf_per_share|fcf_share|fcf_per_share_usd|fcf_share_usd|pe|ev_to_fcf|ev_fcf|net_leverage)",
         normalized,
     )
     if metric_match:
         year = 2000 + int(metric_match.group(1))
         field = {
             "fcf_share": "fcf_per_share",
+            "fcf_share_usd": "fcf_per_share_usd",
             "ev_fcf": "ev_to_fcf",
         }.get(metric_match.group(2), metric_match.group(2))
         metrics = result["valuation_metrics"]
@@ -100,11 +103,12 @@ def print_datapoint(result: dict[str, object], key: str) -> int:
         if value is None:
             print(f"No value for '{key}' on {company['company_name']}.", file=sys.stderr)
             return 3
-        unit = (
-            f" {metric['reporting_currency']}/ordinary share"
-            if field in {"eps", "fcf_per_share"}
-            else "x"
-        )
+        if field in {"eps_usd", "fcf_per_share_usd"}:
+            unit = " USD/ordinary share"
+        elif field in {"eps", "fcf_per_share"}:
+            unit = f" {metric['reporting_currency']}/ordinary share"
+        else:
+            unit = "x"
         print(
             f"{company['company_name']} ({company['ticker']}): "
             f"CY{year} {field} = {value}{unit} "
@@ -195,7 +199,8 @@ def main() -> int:
         currency = item["reporting_currency"] or "n/a"
         print(
             f"  CY{item['calendar_year']}: EPS {item['eps']} {currency}, "
-            f"FCF/share {item['fcf_per_share']} {currency}, P/E {item['pe']}, "
+            f"EPS USD {item['eps_usd']}, FCF/share {item['fcf_per_share']} {currency}, "
+            f"FCF/share USD {item['fcf_per_share_usd']}, P/E {item['pe']}, "
             f"EV/FCF {item['ev_to_fcf']}, net leverage {item['net_leverage']} "
             f"[{item['calculation_quality']}]"
         )

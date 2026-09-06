@@ -6,6 +6,8 @@ The forward dataset was collected on 2026-09-03. It covers CY2027 and CY2028 for
 
 SEC filings do not contain 2027-2029 consensus estimates, so filings are historical and calendar anchors rather than the source of forward estimates. Local share prices are dated in `data/valuation_inputs.csv`. The EUR/USD and HKD/USD conversions are the 2026-09-03 Frankfurter rates; all other quote and reporting currencies already match.
 
+USD per-share display values use the same 2026-09-03 snapshot as the valuation inputs. USD-reporting source values are retained exactly. Non-USD values use official reference rates stored in `data/fx_rates.csv`: ECB rates for EUR, CNY, JPY, KRW, and CHF, and the Central Bank of the Republic of China (Taiwan) interbank closing rate for TWD. ECB cross-rates are calculated as `USD per currency = USD per EUR / currency per EUR`. An issuer-published USD value entered in `data/usd_per_share_overrides.csv` takes priority over FX conversion.
+
 ## Process summary
 
 Forward fiscal estimates primarily come from MarketScreener analyst pages, with a source URL retained on every raw row, including NVIDIA and TSMC. SEC filings provide historical and accounting-basis checks because they do not contain future consensus estimates.
@@ -29,11 +31,13 @@ Consensus earnings are reconstructed as published fiscal EPS multiplied by fisca
 
 - `CY EPS = CY consensus earnings / CY diluted shares`
 - `CY FCF/share = CY FCF / CY diluted shares`
+- `CY EPS (USD) = official USD CY EPS when available; otherwise CY EPS * USD per reporting-currency unit`
+- `CY FCF/share (USD) = official USD CY FCF/share when available; otherwise CY FCF/share * USD per reporting-currency unit`
 - `CY P/E = valuation-date price in reporting currency / CY EPS`
 - `CY EV/FCF = (valuation-date price * CY diluted shares + CY-end net debt) / CY FCF`
 - `CY Net leverage = CY-end net debt / CY EBITDA`
 
-Negative P/E and EV/FCF values are left blank as not meaningful. Negative net leverage means net cash. Per-share values are in the issuer's reporting currency per underlying ordinary share, not per ADR. Unitless ratios remain comparable across listings.
+Negative P/E and EV/FCF values are left blank as not meaningful. Negative net leverage means net cash. Both local-currency and USD per-share values are per underlying ordinary share, not per ADR. FX normalization aligns currencies but does not normalize differing share counts or ADR ratios; P/E, EV/FCF, and growth rates remain the better cross-company comparisons.
 
 If FY(Y+1) is missing and the uncovered part of the calendar year is no more than 34%, the script holds FY(Y) flat for that tail and labels the result `flat-tail`. It never extrapolates a larger missing period. Missing components remain blank and are labeled `partial`.
 
@@ -59,7 +63,9 @@ These statistics measure calculation and source consistency, not the chance that
 
 1. Replace or add fiscal estimates in `data/fiscal_forecasts.csv`.
 2. Refresh prices and any required FX in `data/valuation_inputs.csv`.
-3. Run `node scripts/calendarize_forecasts.mjs`.
-4. Run `python scripts/build_database.py`.
+3. Add official snapshot-date reporting-currency/USD rates to `data/fx_rates.csv`.
+4. Add issuer-published USD per-share values to `data/usd_per_share_overrides.csv` only when they use the underlying ordinary-share basis.
+5. Run `node scripts/calendarize_forecasts.mjs`.
+6. Run `python scripts/build_database.py`.
 
 The first command regenerates the wide columns in `data/semiconductor_universe.csv` and the normalized `data/calendarized_metrics.csv`. The second rebuilds SQLite.

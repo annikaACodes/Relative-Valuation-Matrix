@@ -103,6 +103,28 @@ CREATE TABLE valuation_inputs (
     fx_source_url TEXT
 ) WITHOUT ROWID;
 
+CREATE TABLE fx_rates (
+    rate_date TEXT NOT NULL,
+    currency TEXT NOT NULL,
+    usd_per_currency REAL NOT NULL CHECK (usd_per_currency > 0),
+    calculation TEXT NOT NULL,
+    source_url TEXT NOT NULL DEFAULT '',
+    source_note TEXT NOT NULL DEFAULT '',
+    PRIMARY KEY (rate_date, currency)
+) WITHOUT ROWID;
+
+CREATE TABLE usd_per_share_overrides (
+    company_id TEXT NOT NULL REFERENCES companies(company_id) ON DELETE CASCADE,
+    calendar_year INTEGER NOT NULL,
+    eps_usd REAL,
+    fcf_per_share_usd REAL,
+    source_url TEXT NOT NULL,
+    source_note TEXT NOT NULL DEFAULT '',
+    PRIMARY KEY (company_id, calendar_year),
+    CHECK (calendar_year IN (2027, 2028)),
+    CHECK (eps_usd IS NOT NULL OR fcf_per_share_usd IS NOT NULL)
+) WITHOUT ROWID;
+
 CREATE TABLE calendarized_metrics (
     company_id TEXT NOT NULL REFERENCES companies(company_id) ON DELETE CASCADE,
     calendar_year INTEGER NOT NULL,
@@ -110,7 +132,12 @@ CREATE TABLE calendarized_metrics (
     fiscal_year_weight REAL NOT NULL,
     next_fiscal_year_weight REAL NOT NULL,
     eps REAL,
+    eps_usd REAL,
     fcf_per_share REAL,
+    fcf_per_share_usd REAL,
+    usd_per_reporting_currency REAL,
+    eps_usd_method TEXT NOT NULL DEFAULT '',
+    fcf_per_share_usd_method TEXT NOT NULL DEFAULT '',
     pe REAL,
     ev_to_fcf REAL,
     net_leverage REAL,
@@ -176,12 +203,16 @@ SELECT
     c.company_name,
     c.preferred_ticker AS ticker,
     MAX(CASE WHEN m.calendar_year = 2027 THEN m.eps END) AS cy2027_eps,
+    MAX(CASE WHEN m.calendar_year = 2027 THEN m.eps_usd END) AS cy2027_eps_usd,
     MAX(CASE WHEN m.calendar_year = 2027 THEN m.fcf_per_share END) AS cy2027_fcf_per_share,
+    MAX(CASE WHEN m.calendar_year = 2027 THEN m.fcf_per_share_usd END) AS cy2027_fcf_per_share_usd,
     MAX(CASE WHEN m.calendar_year = 2027 THEN m.pe END) AS cy2027_pe,
     MAX(CASE WHEN m.calendar_year = 2027 THEN m.ev_to_fcf END) AS cy2027_ev_to_fcf,
     MAX(CASE WHEN m.calendar_year = 2027 THEN m.net_leverage END) AS cy2027_net_leverage,
     MAX(CASE WHEN m.calendar_year = 2028 THEN m.eps END) AS cy2028_eps,
+    MAX(CASE WHEN m.calendar_year = 2028 THEN m.eps_usd END) AS cy2028_eps_usd,
     MAX(CASE WHEN m.calendar_year = 2028 THEN m.fcf_per_share END) AS cy2028_fcf_per_share,
+    MAX(CASE WHEN m.calendar_year = 2028 THEN m.fcf_per_share_usd END) AS cy2028_fcf_per_share_usd,
     MAX(CASE WHEN m.calendar_year = 2028 THEN m.pe END) AS cy2028_pe,
     MAX(CASE WHEN m.calendar_year = 2028 THEN m.ev_to_fcf END) AS cy2028_ev_to_fcf,
     MAX(CASE WHEN m.calendar_year = 2028 THEN m.net_leverage END) AS cy2028_net_leverage

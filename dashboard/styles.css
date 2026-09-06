@@ -304,7 +304,7 @@ a {
 }
 
 .summary-item:last-child {
-  border-top: 3px solid #4f8d91;
+  border-top: 3px solid #4b83b4;
 }
 
 .summary-item:last-child {
@@ -525,7 +525,7 @@ a {
 .matrix-table th,
 .matrix-table td {
   height: 54px;
-  padding: 8px 10px;
+  padding: 8px 7px;
   border-right: 1px solid #e9eef3;
   border-bottom: 1px solid #e7edf3;
   text-align: right;
@@ -533,23 +533,23 @@ a {
 }
 
 .matrix-table .company-col {
-  width: 19%;
+  width: 18%;
 }
 
 .matrix-table .market-cap-col {
-  width: 7%;
+  width: 6%;
 }
 
 .matrix-table .business-col {
-  width: 12%;
+  width: 10%;
 }
 
 .matrix-table .metric-col {
-  width: 5.8%;
+  width: 4.4%;
 }
 
 .matrix-table .action-col {
-  width: 4%;
+  width: 4.4%;
 }
 
 .matrix-table th {
@@ -575,7 +575,22 @@ a {
 }
 
 .matrix-table .metric-headers .sort-button {
-  text-align: right;
+  position: relative;
+  padding-right: 7px;
+  text-align: center;
+}
+
+.matrix-table .metric-headers th {
+  padding-right: 3px;
+  padding-left: 3px;
+  font-size: 0.61rem;
+}
+
+.matrix-table .metric-headers .sort-button::after {
+  position: absolute;
+  right: 0;
+  width: 6px;
+  margin-left: 0;
 }
 
 .matrix-table .metric-headers small {
@@ -617,12 +632,18 @@ a {
   background: #f3f8ff;
 }
 
-.matrix-table tbody td:nth-child(n + 4):nth-child(-n + 8) {
+.matrix-table tbody td:nth-child(n + 4):nth-child(-n + 10) {
   background: #f8fafd;
 }
 
-.matrix-table tbody td:nth-child(n + 9):nth-child(-n + 13) {
+.matrix-table tbody td:nth-child(n + 11):nth-child(-n + 17) {
   background: #f4f8fa;
+}
+
+.matrix-table tbody td:nth-child(n + 4):nth-child(-n + 17) {
+  padding-right: 4px;
+  padding-left: 4px;
+  font-size: 0.71rem;
 }
 
 .matrix-table tbody tr.is-selected td,
