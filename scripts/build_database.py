@@ -67,6 +67,8 @@ def load_and_validate() -> tuple[list[dict[str, str]], ...]:
     values_path = DATA_DIR / "datapoint_values.csv"
     fiscal_forecasts_path = DATA_DIR / "fiscal_forecasts.csv"
     valuation_inputs_path = DATA_DIR / "valuation_inputs.csv"
+    fx_rates_path = DATA_DIR / "fx_rates.csv"
+    usd_overrides_path = DATA_DIR / "usd_per_share_overrides.csv"
     calendarized_metrics_path = DATA_DIR / "calendarized_metrics.csv"
 
     universe = read_rows(universe_path)
@@ -75,6 +77,8 @@ def load_and_validate() -> tuple[list[dict[str, str]], ...]:
     values = read_rows(values_path)
     fiscal_forecasts = read_rows(fiscal_forecasts_path)
     valuation_inputs = read_rows(valuation_inputs_path)
+    fx_rates = read_rows(fx_rates_path)
+    usd_overrides = read_rows(usd_overrides_path)
     calendarized_metrics = read_rows(calendarized_metrics_path)
 
     require_columns(
@@ -122,12 +126,30 @@ def load_and_validate() -> tuple[list[dict[str, str]], ...]:
         },
     )
     require_columns(
+        fx_rates_path,
+        fx_rates,
+        {
+            "rate_date", "currency", "usd_per_currency", "calculation",
+            "source_url", "source_note",
+        },
+    )
+    require_columns(
+        usd_overrides_path,
+        usd_overrides,
+        {
+            "company_id", "calendar_year", "eps_usd", "fcf_per_share_usd",
+            "source_url", "source_note",
+        },
+    )
+    require_columns(
         calendarized_metrics_path,
         calendarized_metrics,
         {
             "company_id", "calendar_year", "reporting_currency", "fiscal_year_weight",
-            "next_fiscal_year_weight", "eps", "fcf_per_share", "pe", "ev_to_fcf",
-            "net_leverage", "calculation_quality", "tail_imputed", "missing_input_count",
+            "next_fiscal_year_weight", "eps", "eps_usd", "fcf_per_share",
+            "fcf_per_share_usd", "usd_per_reporting_currency", "eps_usd_method",
+            "fcf_per_share_usd_method", "pe", "ev_to_fcf", "net_leverage",
+            "calculation_quality", "tail_imputed", "missing_input_count",
             "earnings_basis", "valuation_date", "forecast_source_date",
         },
     )
@@ -259,7 +281,39 @@ def load_and_validate() -> tuple[list[dict[str, str]], ...]:
     if valuation_company_ids != company_ids:
         raise ValueError("valuation_inputs.csv must contain exactly one row per company")
 
+    fx_keys: set[tuple[str, str]] = set()
+    for row in fx_rates:
+        rate_date = valid_date(row["rate_date"], f"fx_rate/{row['currency']}")
+        currency = row["currency"]
+        key = (rate_date, currency)
+        if key in fx_keys:
+            raise ValueError(f"Duplicate FX rate: {key}")
+        fx_keys.add(key)
+        if float(row["usd_per_currency"]) <= 0:
+            raise ValueError(f"Non-positive FX rate: {key}")
+        if currency != "USD" and not row["source_url"]:
+            raise ValueError(f"Missing FX source URL: {key}")
+
+    override_keys: set[tuple[str, int]] = set()
+    for row in usd_overrides:
+        company_id = row["company_id"]
+        calendar_year = int(row["calendar_year"])
+        key = (company_id, calendar_year)
+        if company_id not in company_ids or calendar_year not in {2027, 2028}:
+            raise ValueError(f"Invalid USD per-share override: {key}")
+        if key in override_keys:
+            raise ValueError(f"Duplicate USD per-share override: {key}")
+        override_keys.add(key)
+        if not row["eps_usd"] and not row["fcf_per_share_usd"]:
+            raise ValueError(f"Empty USD per-share override: {key}")
+        for column in ("eps_usd", "fcf_per_share_usd"):
+            if row[column]:
+                float(row[column])
+        if not row["source_url"]:
+            raise ValueError(f"Missing override source URL: {key}")
+
     metric_keys: set[tuple[str, int]] = set()
+    usd_methods = {"", "reported-usd", "official-fx", "official-usd-override"}
     for row in calendarized_metrics:
         company_id = row["company_id"]
         calendar_year = int(row["calendar_year"])
@@ -271,19 +325,32 @@ def load_and_validate() -> tuple[list[dict[str, str]], ...]:
         metric_keys.add(key)
         if row["calculation_quality"] not in {"direct", "flat-tail", "partial"}:
             raise ValueError(f"Invalid calculation_quality: {key}")
+        for method_column in ("eps_usd_method", "fcf_per_share_usd_method"):
+            if row[method_column] not in usd_methods:
+                raise ValueError(f"Invalid {method_column}: {key}")
+        for local_column, usd_column, method_column in (
+            ("eps", "eps_usd", "eps_usd_method"),
+            ("fcf_per_share", "fcf_per_share_usd", "fcf_per_share_usd_method"),
+        ):
+            if row[local_column] and (not row[usd_column] or not row[method_column]):
+                raise ValueError(f"Missing USD conversion for {local_column}: {key}")
+        if row["usd_per_reporting_currency"] and float(row["usd_per_reporting_currency"]) <= 0:
+            raise ValueError(f"Non-positive reporting-currency FX rate: {key}")
     if len(metric_keys) != len(company_ids) * 2:
         raise ValueError("calendarized_metrics.csv must contain 2027 and 2028 for every company")
 
     return (
         universe, alternates, definitions, values,
-        fiscal_forecasts, valuation_inputs, calendarized_metrics,
+        fiscal_forecasts, valuation_inputs, fx_rates, usd_overrides,
+        calendarized_metrics,
     )
 
 
 def build_database(output_path: Path) -> dict[str, int]:
     (
         universe, alternates, definitions, values,
-        fiscal_forecasts, valuation_inputs, calendarized_metrics,
+        fiscal_forecasts, valuation_inputs, fx_rates, usd_overrides,
+        calendarized_metrics,
     ) = load_and_validate()
     output_path.parent.mkdir(parents=True, exist_ok=True)
     temp_path = output_path.with_suffix(output_path.suffix + ".tmp")
@@ -300,7 +367,7 @@ def build_database(output_path: Path) -> dict[str, int]:
                 ("database_name", "Relative Valuation Matrix"),
                 ("generated_at_utc", generated_at),
                 ("market_cap_threshold_usd_bn", str(THRESHOLD_USD_BN)),
-                ("seed_format_version", "4"),
+                ("seed_format_version", "5"),
             ],
         )
 
@@ -401,15 +468,57 @@ def build_database(output_path: Path) -> dict[str, int]:
                 for row in valuation_inputs
             ],
         )
+        connection.executemany(
+            """INSERT INTO fx_rates
+               (rate_date, currency, usd_per_currency, calculation, source_url, source_note)
+               VALUES (:rate_date, :currency, :usd_per_currency, :calculation,
+                       :source_url, :source_note)""",
+            [
+                {
+                    **row,
+                    "usd_per_currency": float(row["usd_per_currency"]),
+                }
+                for row in fx_rates
+            ],
+        )
+        connection.executemany(
+            """INSERT INTO usd_per_share_overrides
+               (company_id, calendar_year, eps_usd, fcf_per_share_usd,
+                source_url, source_note)
+               VALUES (:company_id, :calendar_year, :eps_usd, :fcf_per_share_usd,
+                       :source_url, :source_note)""",
+            [
+                {
+                    **row,
+                    "calendar_year": int(row["calendar_year"]),
+                    "eps_usd": float(row["eps_usd"]) if row["eps_usd"] else None,
+                    "fcf_per_share_usd": (
+                        float(row["fcf_per_share_usd"])
+                        if row["fcf_per_share_usd"] else None
+                    ),
+                }
+                for row in usd_overrides
+            ],
+        )
         numeric_metric_columns = {
-            "fiscal_year_weight", "next_fiscal_year_weight", "eps", "fcf_per_share",
+            "fiscal_year_weight", "next_fiscal_year_weight", "eps", "eps_usd",
+            "fcf_per_share", "fcf_per_share_usd", "usd_per_reporting_currency",
             "pe", "ev_to_fcf", "net_leverage",
         }
         connection.executemany(
-            """INSERT INTO calendarized_metrics VALUES
+            """INSERT INTO calendarized_metrics
+               (company_id, calendar_year, reporting_currency, fiscal_year_weight,
+                next_fiscal_year_weight, eps, eps_usd, fcf_per_share,
+                fcf_per_share_usd, usd_per_reporting_currency, eps_usd_method,
+                fcf_per_share_usd_method, pe, ev_to_fcf, net_leverage,
+                calculation_quality, tail_imputed, missing_input_count,
+                earnings_basis, valuation_date, forecast_source_date)
+               VALUES
                (:company_id, :calendar_year, :reporting_currency,
-                :fiscal_year_weight, :next_fiscal_year_weight, :eps, :fcf_per_share,
-                :pe, :ev_to_fcf, :net_leverage, :calculation_quality, :tail_imputed,
+                :fiscal_year_weight, :next_fiscal_year_weight, :eps, :eps_usd,
+                :fcf_per_share, :fcf_per_share_usd, :usd_per_reporting_currency,
+                :eps_usd_method, :fcf_per_share_usd_method, :pe, :ev_to_fcf,
+                :net_leverage, :calculation_quality, :tail_imputed,
                 :missing_input_count, :earnings_basis, :valuation_date,
                 :forecast_source_date)""",
             [
@@ -456,6 +565,8 @@ def build_database(output_path: Path) -> dict[str, int]:
         "listings": len(universe) + len(alternates),
         "datapoint_values": len(values),
         "fiscal_forecasts": len(fiscal_forecasts),
+        "fx_rates": len(fx_rates),
+        "usd_per_share_overrides": len(usd_overrides),
         "calendarized_metrics": len(calendarized_metrics),
     }
 
