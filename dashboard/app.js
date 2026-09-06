@@ -337,11 +337,12 @@ function renderMatrix() {
 function renderMatrixStructure(years, metrics) {
   const metricColumnCount = years.length * metrics.length;
   const metricArea = Math.min(56, 16 + (metricColumnCount * 4));
-  const identityArea = 95 - metricArea;
+  const marketCapArea = 6;
+  const flexibleIdentityArea = 95 - metricArea - marketCapArea;
   const widths = {
-    company: identityArea * (20 / 39),
-    marketCap: identityArea * (7 / 39),
-    business: identityArea * (12 / 39),
+    company: flexibleIdentityArea * (5 / 8),
+    marketCap: marketCapArea,
+    business: flexibleIdentityArea * (3 / 8),
     metric: metricArea / metricColumnCount,
   };
   const metricColumns = years.flatMap((year) => metrics.map((metric) => (
