@@ -17,14 +17,13 @@ const COMPARE_METRICS = [
   { key: "leverage", label: "Net leverage", chart: "leverage", unit: "net debt / EBITDA" },
 ];
 const MATRIX_METRICS = [
-  { key: "eps", label: "EPS", unit: "reported currency / ordinary share" },
-  { key: "eps_usd", label: "EPS (USD)", unit: "USD / ordinary share" },
-  { key: "fcf", label: "FCF / share", unit: "reported currency / ordinary share" },
-  { key: "fcf_usd", label: "FCF / share (USD)", unit: "USD / ordinary share" },
+  { key: "eps", usdKey: "eps_usd", label: "EPS", perShare: true },
+  { key: "fcf", usdKey: "fcf_usd", label: "FCF / share", perShare: true },
   { key: "pe", label: "P / E", unit: "multiple" },
   { key: "ev_fcf", label: "EV / FCF", unit: "multiple" },
   { key: "leverage", label: "Net leverage", unit: "net debt / EBITDA" },
 ];
+const MATRIX_METRIC_KEYS = MATRIX_METRICS.map((metric) => metric.key);
 
 const state = {
   companies: [],
@@ -32,6 +31,9 @@ const state = {
   activeView: "matrix",
   query: "",
   category: "all",
+  perShareUnit: "usd",
+  yearView: "both",
+  visibleMetrics: [...MATRIX_METRIC_KEYS],
   sortKey: "market_cap_usd_bn",
   sortDirection: "desc",
   optionIndex: -1,
@@ -53,7 +55,13 @@ function cacheElements() {
     "marketCapAsOf",
     "matrixSearch",
     "categoryFilter",
+    "yearToggle",
+    "currencyToggle",
+    "metricSelector",
+    "metricSelectionCount",
     "matrixResultCount",
+    "matrixColgroup",
+    "matrixHead",
     "matrixBody",
     "matrixLoading",
     "companySearch",
@@ -91,8 +99,24 @@ function bindEvents() {
     renderMatrix();
   });
 
-  document.querySelectorAll("[data-sort]").forEach((button) => {
-    button.addEventListener("click", () => setSort(button.dataset.sort));
+  elements.currencyToggle.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-per-share-unit]");
+    if (button) setPerShareUnit(button.dataset.perShareUnit);
+  });
+
+  elements.yearToggle.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-year-view]");
+    if (button) setYearView(button.dataset.yearView);
+  });
+
+  elements.metricSelector.addEventListener("change", (event) => {
+    const input = event.target.closest("[data-metric-toggle]");
+    if (input) setMetricVisibility(input.dataset.metricToggle, input.checked);
+  });
+
+  elements.matrixHead.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-sort]");
+    if (button) setSort(button.dataset.sort);
   });
 
   elements.matrixBody.addEventListener("click", (event) => {
@@ -124,7 +148,7 @@ function bindEvents() {
 
   elements.copyLinkButton.addEventListener("click", copyComparisonLink);
   elements.exportCompareButton.addEventListener("click", () => exportCompanies(getSelectedCompanies(), "selected-peer-comparison.csv"));
-  elements.exportMatrixButton.addEventListener("click", () => exportCompanies(getFilteredCompanies(), "valuation-matrix-view.csv"));
+  elements.exportMatrixButton.addEventListener("click", () => exportMatrixView(getFilteredCompanies()));
   elements.retryButton.addEventListener("click", initialize);
 
   window.addEventListener("hashchange", () => {
@@ -148,6 +172,7 @@ async function initialize() {
     );
 
     state.companies = universeRows.map((row) => normalizeCompany(row, calendarizedMap));
+    hydrateMatrixPreferences();
     hydrateSelectionFromUrl();
     populateCategories();
     renderSummary();
@@ -293,18 +318,205 @@ function getLatestForecastDate() {
 
 function renderMatrix() {
   if (!state.companies.length) return;
+  syncMatrixControls();
+  const years = getVisibleYears();
+  const metrics = getVisibleMatrixMetrics();
+  renderMatrixStructure(years, metrics);
   const companies = getFilteredCompanies();
   const selected = new Set(state.selectedIds);
+  const columnCount = 4 + (years.length * metrics.length);
 
   elements.matrixResultCount.textContent = `${companies.length} ${companies.length === 1 ? "company" : "companies"}`;
   elements.matrixBody.innerHTML = companies.length
-    ? companies.map((company) => matrixRow(company, selected.has(company.id))).join("")
-    : '<tr class="empty-row"><td colspan="18">No companies match the current filters.</td></tr>';
+    ? companies.map((company) => matrixRow(company, selected.has(company.id), years, metrics)).join("")
+    : `<tr class="empty-row"><td colspan="${columnCount}">No companies match the current filters.</td></tr>`;
 
-  document.querySelectorAll("[data-sort]").forEach((button) => {
-    if (button.dataset.sort === state.sortKey) button.dataset.direction = state.sortDirection;
-    else button.removeAttribute("data-direction");
+  syncSortControls();
+}
+
+function renderMatrixStructure(years, metrics) {
+  const metricColumnCount = years.length * metrics.length;
+  const metricArea = Math.min(56, 16 + (metricColumnCount * 4));
+  const identityArea = 95 - metricArea;
+  const widths = {
+    company: identityArea * (20 / 39),
+    marketCap: identityArea * (7 / 39),
+    business: identityArea * (12 / 39),
+    metric: metricArea / metricColumnCount,
+  };
+  const metricColumns = years.flatMap((year) => metrics.map((metric) => (
+    `<col class="metric-col" data-year="${year}" data-metric="${escapeHtml(metric.baseKey)}" style="width:${widths.metric.toFixed(3)}%" />`
+  ))).join("");
+  elements.matrixColgroup.innerHTML = `
+    <col class="company-col" style="width:${widths.company.toFixed(3)}%" />
+    <col class="market-cap-col" style="width:${widths.marketCap.toFixed(3)}%" />
+    <col class="business-col" style="width:${widths.business.toFixed(3)}%" />
+    ${metricColumns}
+    <col class="action-col" style="width:5%" />`;
+
+  const yearGroups = years.map((year) => (
+    `<th class="year-group year-${year}" colspan="${metrics.length}" scope="colgroup">CY${year}</th>`
+  )).join("");
+  const metricHeaders = years.flatMap((year) => metrics.map((metric) => {
+    const tableLabel = metricTableLabel(metric.baseKey);
+    const unit = metric.perShare ? `<small>${state.perShareUnit === "usd" ? "USD" : "local"}</small>` : "";
+    const sortLabel = `CY${year} ${metric.label}`;
+    return `<th scope="col"><button class="sort-button" type="button" data-sort="cy${year}_${metric.key}" data-sort-label="${escapeHtml(sortLabel)}">${escapeHtml(tableLabel)}${unit}</button></th>`;
+  })).join("");
+
+  elements.matrixHead.innerHTML = `
+    <tr class="year-groups">
+      <th class="sticky-company company-column" rowspan="2" scope="col"><button class="sort-button" type="button" data-sort="company_name" data-sort-label="Company">Company</button></th>
+      <th class="market-cap-column" rowspan="2" scope="col"><button class="sort-button" type="button" data-sort="market_cap_usd_bn" data-sort-label="Market cap">Market cap</button></th>
+      <th class="segment-column" rowspan="2" scope="col"><button class="sort-button" type="button" data-sort="segment" data-sort-label="Business">Business</button></th>
+      ${yearGroups}
+      <th class="compare-column" rowspan="2" scope="col"><span class="sr-only">Add to comparison</span></th>
+    </tr>
+    <tr class="metric-headers">${metricHeaders}</tr>`;
+}
+
+function syncSortControls() {
+  elements.matrixHead.querySelectorAll("[data-sort]").forEach((button) => {
+    const active = button.dataset.sort === state.sortKey;
+    const label = button.dataset.sortLabel || button.textContent.trim();
+    const header = button.closest("th");
+    if (active) {
+      const textSort = state.sortKey === "company_name" || state.sortKey === "Ticker" || state.sortKey === "segment";
+      const directionLabel = textSort
+        ? state.sortDirection === "asc" ? "A to Z" : "Z to A"
+        : state.sortDirection === "asc" ? "least to greatest" : "greatest to least";
+      button.dataset.direction = state.sortDirection;
+      button.setAttribute("aria-label", `${label}, sorted ${directionLabel}. Activate to reverse.`);
+      header?.setAttribute("aria-sort", state.sortDirection === "asc" ? "ascending" : "descending");
+    } else {
+      button.removeAttribute("data-direction");
+      button.setAttribute("aria-label", `Sort by ${label}`);
+      header?.setAttribute("aria-sort", "none");
+    }
   });
+}
+
+function hydrateMatrixPreferences() {
+  try {
+    const savedUnit = window.localStorage.getItem("rvm-per-share-unit");
+    const savedYear = window.localStorage.getItem("rvm-year-view");
+    const savedMetrics = JSON.parse(window.localStorage.getItem("rvm-visible-metrics") || "null");
+    if (savedUnit === "usd" || savedUnit === "local") state.perShareUnit = savedUnit;
+    if (savedYear === "2027" || savedYear === "2028" || savedYear === "both") state.yearView = savedYear;
+    if (Array.isArray(savedMetrics)) {
+      const validMetrics = MATRIX_METRIC_KEYS.filter((key) => savedMetrics.includes(key));
+      if (validMetrics.length) state.visibleMetrics = validMetrics;
+    }
+  } catch {
+    state.perShareUnit = "usd";
+    state.yearView = "both";
+    state.visibleMetrics = [...MATRIX_METRIC_KEYS];
+  }
+}
+
+function setPerShareUnit(unit) {
+  if ((unit !== "usd" && unit !== "local") || state.perShareUnit === unit) return;
+  state.perShareUnit = unit;
+  const perShareSort = state.sortKey.match(/^cy(2027|2028)_(eps|fcf)(?:_usd)?$/);
+  if (perShareSort) {
+    const [, year, metric] = perShareSort;
+    state.sortKey = `cy${year}_${metric}${unit === "usd" ? "_usd" : ""}`;
+  }
+  persistMatrixPreferences();
+  renderMatrix();
+}
+
+function setYearView(yearView) {
+  if ((yearView !== "2027" && yearView !== "2028" && yearView !== "both") || state.yearView === yearView) return;
+  state.yearView = yearView;
+  resetHiddenSort();
+  persistMatrixPreferences();
+  renderMatrix();
+}
+
+function setMetricVisibility(metricKey, visible) {
+  if (!MATRIX_METRIC_KEYS.includes(metricKey)) return;
+  const selected = new Set(state.visibleMetrics);
+  if (visible) selected.add(metricKey);
+  else if (selected.size > 1) selected.delete(metricKey);
+  state.visibleMetrics = MATRIX_METRIC_KEYS.filter((key) => selected.has(key));
+  resetHiddenSort();
+  persistMatrixPreferences();
+  renderMatrix();
+}
+
+function persistMatrixPreferences() {
+  try {
+    window.localStorage.setItem("rvm-per-share-unit", state.perShareUnit);
+    window.localStorage.setItem("rvm-year-view", state.yearView);
+    window.localStorage.setItem("rvm-visible-metrics", JSON.stringify(state.visibleMetrics));
+  } catch {
+    // Matrix controls remain usable when storage is unavailable.
+  }
+}
+
+function resetHiddenSort() {
+  const metricSort = state.sortKey.match(/^cy(2027|2028)_(eps|fcf|pe|ev_fcf|leverage)(?:_usd)?$/);
+  if (!metricSort) return;
+  const [, year, metric] = metricSort;
+  if (!getVisibleYears().includes(Number(year)) || !state.visibleMetrics.includes(metric)) {
+    state.sortKey = "market_cap_usd_bn";
+    state.sortDirection = "desc";
+  }
+}
+
+function syncMatrixControls() {
+  document.querySelectorAll("[data-year-view]").forEach((button) => {
+    const active = button.dataset.yearView === state.yearView;
+    button.classList.toggle("is-active", active);
+    button.setAttribute("aria-pressed", String(active));
+  });
+
+  const oneMetricSelected = state.visibleMetrics.length === 1;
+  document.querySelectorAll("[data-metric-toggle]").forEach((input) => {
+    const checked = state.visibleMetrics.includes(input.dataset.metricToggle);
+    input.checked = checked;
+    input.disabled = checked && oneMetricSelected;
+    input.closest(".metric-choice")?.classList.toggle("is-required", input.disabled);
+    input.closest(".metric-choice")?.setAttribute("title", input.disabled ? "At least one metric must remain selected" : "");
+  });
+  elements.metricSelectionCount.textContent = `${state.visibleMetrics.length} selected`;
+
+  const perShareVisible = state.visibleMetrics.includes("eps") || state.visibleMetrics.includes("fcf");
+  elements.currencyToggle.closest(".unit-toggle-field")?.classList.toggle("is-disabled", !perShareVisible);
+  document.querySelectorAll("[data-per-share-unit]").forEach((button) => {
+    const active = button.dataset.perShareUnit === state.perShareUnit;
+    button.classList.toggle("is-active", active);
+    button.setAttribute("aria-pressed", String(active));
+    button.disabled = !perShareVisible;
+    button.title = perShareVisible ? "" : "Available when EPS or FCF/share is selected";
+  });
+}
+
+function getVisibleYears() {
+  if (state.yearView === "2027") return [2027];
+  if (state.yearView === "2028") return [2028];
+  return [2027, 2028];
+}
+
+function getVisibleMatrixMetrics() {
+  return MATRIX_METRICS
+    .filter((metric) => state.visibleMetrics.includes(metric.key))
+    .map((metric) => ({
+      ...metric,
+      baseKey: metric.key,
+      key: metric.perShare && state.perShareUnit === "usd" ? metric.usdKey : metric.key,
+    }));
+}
+
+function metricTableLabel(metricKey) {
+  return {
+    eps: "EPS",
+    fcf: "FCF/share",
+    pe: "P/E",
+    ev_fcf: "EV/FCF",
+    leverage: "Net lev.",
+  }[metricKey];
 }
 
 function getFilteredCompanies() {
@@ -333,14 +545,13 @@ function setSort(key) {
   if (state.sortKey === key) state.sortDirection = state.sortDirection === "asc" ? "desc" : "asc";
   else {
     state.sortKey = key;
-    state.sortDirection = key === "company_name" || key === "Ticker" ? "asc" : "desc";
+    state.sortDirection = key === "company_name" || key === "Ticker" || key === "segment" ? "asc" : "desc";
   }
   renderMatrix();
 }
 
-function matrixRow(company, isSelected) {
-  const metrics2027 = MATRIX_METRICS.map((metric) => metricCell(company, 2027, metric)).join("");
-  const metrics2028 = MATRIX_METRICS.map((metric) => metricCell(company, 2028, metric)).join("");
+function matrixRow(company, isSelected, years, metrics) {
+  const metricCells = years.flatMap((year) => metrics.map((metric) => metricCell(company, year, metric))).join("");
   const atLimit = state.selectedIds.length >= MAX_SELECTION && !isSelected;
   const actionLabel = isSelected ? `Remove ${company.company_name} from comparison` : `Add ${company.company_name} to comparison`;
   return `
@@ -356,8 +567,7 @@ function matrixRow(company, isSelected) {
       </td>
       <td>${formatMarketCap(company.market_cap_usd_bn)}</td>
       <td><span class="segment-text" title="${escapeHtml(company.segment)}">${escapeHtml(company.segment)}</span></td>
-      ${metrics2027}
-      ${metrics2028}
+      ${metricCells}
       <td>
         <button
           class="row-compare-button ${isSelected ? "is-selected" : ""}"
@@ -383,7 +593,7 @@ function metricCell(company, year, metric) {
   const marker = quality === "flat-tail" ? '<i class="quality-marker" aria-label="Flat-tail estimate"></i>' : "";
   const perShareUnit = isUsdPerShare ? "USD" : isLocalPerShare ? company.reporting_currency : "";
   const unit = value !== null && perShareUnit ? `<small class="cell-unit">${escapeHtml(perShareUnit)}</small>` : "";
-  return `<td title="${escapeHtml(titleParts.join(" | "))}">${value === null ? `<span class="metric-missing">${INSUFFICIENT_DATA}</span>` : `<span class="metric-value">${formatMetric(value, metric.key)}${marker}</span>${unit}`}</td>`;
+  return `<td data-year="${year}" data-metric="${escapeHtml(metric.baseKey)}" title="${escapeHtml(titleParts.join(" | "))}">${value === null ? `<span class="metric-missing">${INSUFFICIENT_DATA}</span>` : `<span class="metric-value">${formatMetric(value, metric.key)}${marker}</span>${unit}`}</td>`;
 }
 
 function setView(view, updateHash = true) {
@@ -792,6 +1002,41 @@ function exportCompanies(companies, filename) {
     company.cy2028_ev_fcf,
     company.cy2028_leverage,
   ]);
+  downloadCsv(headers, rows, filename, companies.length);
+}
+
+function exportMatrixView(companies) {
+  if (!companies.length) {
+    showToast("There are no companies to export.");
+    return;
+  }
+  const years = getVisibleYears();
+  const metrics = getVisibleMatrixMetrics();
+  const headers = [
+    "Company",
+    "Ticker",
+    "Country",
+    "Business",
+    "Market Cap USD Bn",
+    "Reporting Currency",
+    ...years.flatMap((year) => metrics.map((metric) => {
+      const unit = metric.perShare ? state.perShareUnit === "usd" ? " (USD)" : " (Reporting currency)" : "";
+      return `CY${year} ${metric.label}${unit}`;
+    })),
+  ];
+  const rows = companies.map((company) => [
+    company.company_name,
+    company.Ticker,
+    company.country,
+    company.segment,
+    company.market_cap_usd_bn,
+    company.reporting_currency,
+    ...years.flatMap((year) => metrics.map((metric) => company[`cy${year}_${metric.key}`])),
+  ]);
+  downloadCsv(headers, rows, "valuation-matrix-view.csv", companies.length);
+}
+
+function downloadCsv(headers, rows, filename, companyCount) {
   const csv = [headers, ...rows].map((row) => row.map(csvValue).join(",")).join("\r\n");
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
   const url = URL.createObjectURL(blob);
@@ -800,7 +1045,7 @@ function exportCompanies(companies, filename) {
   link.download = filename;
   link.click();
   URL.revokeObjectURL(url);
-  showToast(`${companies.length} companies exported.`);
+  showToast(`${companyCount} companies exported.`);
 }
 
 function csvValue(value) {

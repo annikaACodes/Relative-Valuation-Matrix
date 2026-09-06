@@ -23,7 +23,7 @@
   --surface-subtle: #f7f9fc;
   --background: #eef3f8;
   --year-2027: #294d70;
-  --year-2028: #4b6d86;
+  --year-2028: #467a9b;
   --shadow: 0 8px 24px rgba(16, 36, 63, 0.08);
   --radius: 6px;
   --company-width: 330px;
@@ -344,7 +344,7 @@ a {
 }
 
 .matrix-toolbar {
-  grid-template-columns: minmax(300px, 2fr) minmax(220px, 1fr);
+  grid-template-columns: minmax(280px, 2fr) minmax(190px, 1fr) minmax(220px, auto) minmax(164px, auto);
 }
 
 .search-field,
@@ -401,6 +401,102 @@ a {
   min-width: 0;
   flex-direction: column;
   gap: 4px;
+}
+
+.unit-toggle-field,
+.year-toggle-field {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.unit-toggle-field > span,
+.year-toggle-field > span,
+.metric-selector-label {
+  color: var(--muted);
+  font-size: 0.67rem;
+  font-weight: 750;
+}
+
+.unit-toggle-field.is-disabled {
+  opacity: 0.55;
+}
+
+.year-toggle button {
+  min-width: 68px;
+}
+
+.metric-selector {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: 112px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.metric-selector-label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.metric-selector-label small {
+  color: var(--faint);
+  font-size: 0.6rem;
+  font-weight: 650;
+}
+
+.metric-options {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(96px, 1fr));
+  gap: 7px;
+}
+
+.metric-choice {
+  display: flex;
+  min-width: 0;
+  height: 34px;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 9px;
+  color: var(--navy-800);
+  background: #f3f6fa;
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.metric-choice:has(input:checked) {
+  color: #194f82;
+  background: #e8f1fa;
+  border-color: #8eb2d1;
+}
+
+.metric-choice:hover {
+  border-color: #6f9cc3;
+}
+
+.metric-choice input {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  margin: 0;
+  accent-color: var(--blue-600);
+}
+
+.metric-choice span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.metric-choice.is-required {
+  cursor: default;
+  opacity: 0.8;
 }
 
 .select-field span,
@@ -533,23 +629,23 @@ a {
 }
 
 .matrix-table .company-col {
-  width: 18%;
+  width: 20%;
 }
 
 .matrix-table .market-cap-col {
-  width: 6%;
+  width: 7%;
 }
 
 .matrix-table .business-col {
-  width: 10%;
+  width: 12%;
 }
 
 .matrix-table .metric-col {
-  width: 4.4%;
+  width: 5.6%;
 }
 
 .matrix-table .action-col {
-  width: 4.4%;
+  width: 5%;
 }
 
 .matrix-table th {
@@ -632,15 +728,15 @@ a {
   background: #f3f8ff;
 }
 
-.matrix-table tbody td:nth-child(n + 4):nth-child(-n + 10) {
+.matrix-table tbody td[data-year="2027"] {
   background: #f8fafd;
 }
 
-.matrix-table tbody td:nth-child(n + 11):nth-child(-n + 17) {
+.matrix-table tbody td[data-year="2028"] {
   background: #f4f8fa;
 }
 
-.matrix-table tbody td:nth-child(n + 4):nth-child(-n + 17) {
+.matrix-table tbody td[data-year] {
   padding-right: 4px;
   padding-left: 4px;
   font-size: 0.71rem;
@@ -671,6 +767,8 @@ a {
   color: inherit;
   background: none;
   border: 0;
+  border-radius: 3px;
+  cursor: pointer;
   font-size: inherit;
   font-weight: inherit;
   text-align: inherit;
@@ -681,15 +779,25 @@ a {
   width: 10px;
   margin-left: 4px;
   color: var(--faint);
-  content: "";
+  content: "\2195";
+  opacity: 0.45;
 }
 
 .sort-button[data-direction="asc"]::after {
   content: "\2191";
+  opacity: 1;
 }
 
 .sort-button[data-direction="desc"]::after {
   content: "\2193";
+  opacity: 1;
+}
+
+.sort-button:hover,
+.sort-button:focus-visible {
+  color: var(--blue-700);
+  background: rgba(23, 105, 224, 0.07);
+  outline: none;
 }
 
 .company-cell {
@@ -1502,7 +1610,15 @@ a {
   }
 
   .matrix-toolbar {
-    grid-template-columns: 1.7fr 1fr;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .matrix-toolbar .search-field {
+    grid-column: 1 / -1;
+  }
+
+  .metric-selector {
+    grid-template-columns: 96px minmax(0, 1fr);
   }
 
   .summary-strip {
@@ -1587,6 +1703,24 @@ a {
     grid-template-columns: 1fr;
   }
 
+  .matrix-toolbar .search-field {
+    grid-column: auto;
+  }
+
+  .metric-selector {
+    grid-template-columns: 1fr;
+  }
+
+  .metric-selector-label {
+    flex-direction: row;
+    align-items: baseline;
+    justify-content: space-between;
+  }
+
+  .metric-options {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .segmented-control {
     width: 100%;
   }
@@ -1607,7 +1741,7 @@ a {
   }
 
   .matrix-table {
-    min-width: 1180px;
+    min-width: 1000px;
   }
 
   .table-shell {

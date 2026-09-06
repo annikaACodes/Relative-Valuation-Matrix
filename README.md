@@ -4,7 +4,7 @@ An updatable SQLite database for a broad global semiconductor equity universe.
 
 **Dashboard:** https://annikaacodes.github.io/Relative-Valuation-Matrix/
 
-The dashboard provides a sortable CY2027/CY2028 valuation matrix and a shareable comparison view for up to ten companies. It reads the CSV source files directly, so published data updates flow through without a separate frontend build.
+The dashboard provides a sortable CY2027/CY2028 valuation matrix and a shareable comparison view for up to ten companies. Matrix controls can show either calendar year or both, display any one to five valuation metrics, and switch EPS and FCF/share between comparable USD values and each company's reporting currency. Every displayed data column supports ascending and descending sorting. The dashboard reads the CSV source files directly, so published data updates flow through without a separate frontend build.
 
 The initial screen contains **100 public companies above $15 billion in market capitalization** and **4 near-threshold watchlist companies** as of September 1, 2026. The market-cap values are screening snapshots rather than live quotes.
 
