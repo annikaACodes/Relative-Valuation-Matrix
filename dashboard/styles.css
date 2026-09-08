@@ -770,7 +770,7 @@ a {
   background: #eaf3ff;
 }
 
-.year-group {
+.matrix-table .year-group {
   font-size: var(--year-group-font-size, 0.8rem);
   text-align: center !important;
 }
