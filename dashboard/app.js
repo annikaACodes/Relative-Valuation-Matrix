@@ -9,6 +9,26 @@ const MAX_SELECTION = 10;
 const INSUFFICIENT_DATA = "Insufficient Data";
 const COMPARE_EMPTY = "&mdash;";
 const DEFAULT_SELECTION = ["nvidia", "tsmc", "broadcom"];
+const EXCEL_MIME = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+const EXCELJS_SOURCES = [
+  "https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js",
+  "https://unpkg.com/exceljs@4.4.0/dist/exceljs.min.js",
+];
+const EXCEL_COLORS = {
+  navy: "FF17324D",
+  blue2027: "FF315E7D",
+  blue2028: "FF347DB5",
+  blueSoft: "FFEAF2F8",
+  body: "FF203446",
+  muted: "FF66798B",
+  border: "FFDCE5ED",
+  band: "FFF7F9FB",
+  missingFill: "FFF1F4F6",
+  missingText: "FF718096",
+  orange: "FFC96B2C",
+  orangeSoft: "FFFBE7D5",
+  white: "FFFFFFFF",
+};
 const COMPARE_METRICS = [
   { key: "eps", label: "EPS", chart: "growth", unit: "reported currency / share" },
   { key: "fcf", label: "FCF / share", chart: "growth", unit: "reported currency / share" },
@@ -41,6 +61,7 @@ const state = {
 };
 
 const elements = {};
+let excelJsPromise = null;
 
 document.addEventListener("DOMContentLoaded", () => {
   cacheElements();
@@ -147,7 +168,7 @@ function bindEvents() {
   });
 
   elements.copyLinkButton.addEventListener("click", copyComparisonLink);
-  elements.exportCompareButton.addEventListener("click", () => exportCompanies(getSelectedCompanies(), "selected-peer-comparison.csv"));
+  elements.exportCompareButton.addEventListener("click", () => exportComparisonWorkbook(getSelectedCompanies()));
   elements.exportMatrixButton.addEventListener("click", () => exportMatrixView(getFilteredCompanies()));
   elements.retryButton.addEventListener("click", initialize);
 
@@ -336,13 +357,14 @@ function renderMatrix() {
 
 function renderMatrixStructure(years, metrics) {
   const metricColumnCount = years.length * metrics.length;
-  const metricArea = Math.min(56, 16 + (metricColumnCount * 4));
-  const marketCapArea = 6;
-  const flexibleIdentityArea = 95 - metricArea - marketCapArea;
+  const actionArea = 3.5;
+  const marketCapArea = 8;
+  const metricArea = Math.min(61.6, 17.6 + (metricColumnCount * 4.4));
+  const flexibleIdentityArea = 100 - actionArea - marketCapArea - metricArea;
   const widths = {
-    company: flexibleIdentityArea * (5 / 8),
+    company: flexibleIdentityArea * 0.64,
     marketCap: marketCapArea,
-    business: flexibleIdentityArea * (3 / 8),
+    business: flexibleIdentityArea * 0.36,
     metric: metricArea / metricColumnCount,
   };
   const metricColumns = years.flatMap((year) => metrics.map((metric) => (
@@ -353,7 +375,7 @@ function renderMatrixStructure(years, metrics) {
     <col class="market-cap-col" style="width:${widths.marketCap.toFixed(3)}%" />
     <col class="business-col" style="width:${widths.business.toFixed(3)}%" />
     ${metricColumns}
-    <col class="action-col" style="width:5%" />`;
+    <col class="action-col" style="width:${actionArea}%" />`;
 
   const yearGroups = years.map((year) => (
     `<th class="year-group year-${year}" colspan="${metrics.length}" scope="colgroup">CY${year}</th>`
@@ -954,105 +976,416 @@ async function copyComparisonLink() {
   }
 }
 
-function exportCompanies(companies, filename) {
+async function exportComparisonWorkbook(companies) {
   if (!companies.length) {
     showToast("There are no companies to export.");
     return;
   }
-  const headers = [
-    "Company",
-    "Ticker",
-    "Country",
-    "Business",
-    "Market Cap USD Bn",
-    "Reporting Currency",
-    "CY2027 EPS",
-    "CY2027 EPS (USD)",
-    "CY2027 FCF/share",
-    "CY2027 FCF/share (USD)",
-    "CY2027 P/E",
-    "CY2027 EV/FCF",
-    "CY2027 Net leverage",
-    "CY2028 EPS",
-    "CY2028 EPS (USD)",
-    "CY2028 FCF/share",
-    "CY2028 FCF/share (USD)",
-    "CY2028 P/E",
-    "CY2028 EV/FCF",
-    "CY2028 Net leverage",
-  ];
-  const rows = companies.map((company) => [
-    company.company_name,
-    company.Ticker,
-    company.country,
-    company.segment,
-    company.market_cap_usd_bn,
-    company.reporting_currency,
-    company.cy2027_eps,
-    company.cy2027_eps_usd,
-    company.cy2027_fcf,
-    company.cy2027_fcf_usd,
-    company.cy2027_pe,
-    company.cy2027_ev_fcf,
-    company.cy2027_leverage,
-    company.cy2028_eps,
-    company.cy2028_eps_usd,
-    company.cy2028_fcf,
-    company.cy2028_fcf_usd,
-    company.cy2028_pe,
-    company.cy2028_ev_fcf,
-    company.cy2028_leverage,
-  ]);
-  downloadCsv(headers, rows, filename, companies.length);
+
+  await runExcelExport(elements.exportCompareButton, companies.length, async (ExcelJS) => {
+    const workbook = createExportWorkbook(ExcelJS, "Selected semiconductor peer comparison");
+    const identityColumns = getExportIdentityColumns();
+    const comparableMetrics = [
+      { key: "eps_usd", header: "EPS (USD/share)", width: 17, numberFormat: "$#,##0.00;[Red]($#,##0.00);-" },
+      { key: "fcf_usd", header: "FCF/share (USD)", width: 18, numberFormat: "$#,##0.00;[Red]($#,##0.00);-" },
+      { key: "pe", header: "P/E", width: 13, numberFormat: "0.00x;[Red](0.00x);-" },
+      { key: "ev_fcf", header: "EV/FCF", width: 14, numberFormat: "0.00x;[Red](0.00x);-" },
+      { key: "leverage", header: "Net leverage", width: 16, numberFormat: "0.00x;[Red](0.00x);-" },
+    ];
+    const yearColumns = [2027, 2028].flatMap((year) => comparableMetrics.map((metric) => ({
+      ...metric,
+      key: `cy${year}_${metric.key}`,
+      value: (company) => company[`cy${year}_${metric.key}`],
+      median: true,
+    })));
+    const changeColumns = [
+      { header: "EPS growth (reported currency)", width: 25, numberFormat: "+0.0%;[Red]-0.0%;-", value: (company) => percentageDecimal(growth(company.cy2027_eps, company.cy2028_eps)), median: true },
+      { header: "FCF/share growth (reported currency)", width: 28, numberFormat: "+0.0%;[Red]-0.0%;-", value: (company) => percentageDecimal(growth(company.cy2027_fcf, company.cy2028_fcf)), median: true },
+      { header: "P/E change", width: 15, numberFormat: "+0.0%;[Red]-0.0%;-", value: (company) => percentageDecimal(percentChange(company.cy2027_pe, company.cy2028_pe)), median: true },
+      { header: "EV/FCF change", width: 17, numberFormat: "+0.0%;[Red]-0.0%;-", value: (company) => percentageDecimal(percentChange(company.cy2027_ev_fcf, company.cy2028_ev_fcf)), median: true },
+      { header: "Net leverage change", width: 20, numberFormat: "+0.00x;[Red]-0.00x;-", value: (company) => difference(company.cy2027_leverage, company.cy2028_leverage), median: true },
+    ];
+    const summaryColumns = [...identityColumns, ...yearColumns, ...changeColumns];
+    const identitySpan = identityColumns.length;
+    const summaryGroups = [
+      { label: "Company profile", span: identitySpan, color: EXCEL_COLORS.navy },
+      { label: "CY2027", span: comparableMetrics.length, color: EXCEL_COLORS.blue2027 },
+      { label: "CY2028", span: comparableMetrics.length, color: EXCEL_COLORS.blue2028 },
+      { label: "CY2028 vs CY2027", span: changeColumns.length, color: EXCEL_COLORS.orange },
+    ];
+    const peerRows = companies.map((company) => ({ values: rowValues(company, summaryColumns) }));
+    peerRows.push({ values: medianRowValues(companies, summaryColumns), style: "median" });
+    addProfessionalSheet(workbook, {
+      name: "Peer Comparison",
+      title: "Selected Peer Comparison",
+      context: `${companies.length} companies | Calendar-normalized consensus estimates as of ${formatDate(getLatestForecastDate())} | Market capitalizations as of ${formatDate(latestMarketCapDate(companies))} | Per-share growth uses reporting currency`,
+      columns: summaryColumns,
+      groups: summaryGroups,
+      rows: peerRows,
+      freezeColumns: 2,
+      tabColor: EXCEL_COLORS.blue2028,
+    });
+
+    const detailMetrics = [
+      { key: "eps", header: "EPS (local/share)", width: 18, numberFormat: "#,##0.00;[Red](#,##0.00);-" },
+      { key: "eps_usd", header: "EPS (USD/share)", width: 17, numberFormat: "$#,##0.00;[Red]($#,##0.00);-" },
+      { key: "fcf", header: "FCF/share (local)", width: 19, numberFormat: "#,##0.00;[Red](#,##0.00);-" },
+      { key: "fcf_usd", header: "FCF/share (USD)", width: 18, numberFormat: "$#,##0.00;[Red]($#,##0.00);-" },
+      { key: "pe", header: "P/E", width: 13, numberFormat: "0.00x;[Red](0.00x);-" },
+      { key: "ev_fcf", header: "EV/FCF", width: 14, numberFormat: "0.00x;[Red](0.00x);-" },
+      { key: "leverage", header: "Net leverage", width: 16, numberFormat: "0.00x;[Red](0.00x);-" },
+      { key: "quality", header: "Estimate quality", width: 18, type: "text" },
+    ];
+    const detailYearColumns = [2027, 2028].flatMap((year) => detailMetrics.map((metric) => ({
+      ...metric,
+      key: metric.key === "quality" ? `quality${year}` : `cy${year}_${metric.key}`,
+      value: (company) => metric.key === "quality" ? company[`quality${year}`] : company[`cy${year}_${metric.key}`],
+    })));
+    const detailColumns = [...identityColumns, ...detailYearColumns];
+    addProfessionalSheet(workbook, {
+      name: "Detailed Values",
+      title: "Detailed Valuation Values",
+      context: "Local-currency and USD per-share values are shown separately; USD values are per underlying ordinary share.",
+      columns: detailColumns,
+      groups: [
+        { label: "Company profile", span: identitySpan, color: EXCEL_COLORS.navy },
+        { label: "CY2027", span: detailMetrics.length, color: EXCEL_COLORS.blue2027 },
+        { label: "CY2028", span: detailMetrics.length, color: EXCEL_COLORS.blue2028 },
+      ],
+      rows: companies.map((company) => ({ values: rowValues(company, detailColumns) })),
+      freezeColumns: 2,
+      tabColor: EXCEL_COLORS.blue2027,
+    });
+
+    return {
+      workbook,
+      filename: `relative-valuation-peer-comparison-${localDateStamp()}.xlsx`,
+    };
+  });
 }
 
-function exportMatrixView(companies) {
+async function exportMatrixView(companies) {
   if (!companies.length) {
     showToast("There are no companies to export.");
     return;
   }
-  const years = getVisibleYears();
-  const metrics = getVisibleMatrixMetrics();
-  const headers = [
-    "Company",
-    "Ticker",
-    "Country",
-    "Business",
-    "Market Cap USD Bn",
-    "Reporting Currency",
-    ...years.flatMap((year) => metrics.map((metric) => {
-      const unit = metric.perShare ? state.perShareUnit === "usd" ? " (USD)" : " (Reporting currency)" : "";
-      return `CY${year} ${metric.label}${unit}`;
-    })),
-  ];
-  const rows = companies.map((company) => [
-    company.company_name,
-    company.Ticker,
-    company.country,
-    company.segment,
-    company.market_cap_usd_bn,
-    company.reporting_currency,
-    ...years.flatMap((year) => metrics.map((metric) => company[`cy${year}_${metric.key}`])),
-  ]);
-  downloadCsv(headers, rows, "valuation-matrix-view.csv", companies.length);
+
+  await runExcelExport(elements.exportMatrixButton, companies.length, async (ExcelJS) => {
+    const workbook = createExportWorkbook(ExcelJS, "Current semiconductor valuation matrix view");
+    const years = getVisibleYears();
+    const metrics = getVisibleMatrixMetrics();
+    const identityColumns = getExportIdentityColumns();
+    const metricColumns = years.flatMap((year) => metrics.map((metric) => ({
+      key: `cy${year}_${metric.key}`,
+      header: matrixExportHeader(metric),
+      width: metric.baseKey === "leverage" ? 16 : 15,
+      numberFormat: exportNumberFormat(metric),
+      value: (company) => company[`cy${year}_${metric.key}`],
+    })));
+    const columns = [...identityColumns, ...metricColumns];
+    const groups = [
+      { label: "Company profile", span: identityColumns.length, color: EXCEL_COLORS.navy },
+      ...years.map((year) => ({
+        label: `CY${year}`,
+        span: metrics.length,
+        color: year === 2027 ? EXCEL_COLORS.blue2027 : EXCEL_COLORS.blue2028,
+      })),
+    ];
+    const metricNames = metrics.map((metric) => metric.label).join(", ");
+    const unitLabel = state.perShareUnit === "usd" ? "USD per share" : "reporting currency per share";
+    const filterParts = [
+      state.category === "all" ? "All businesses" : state.category,
+      state.query ? `Search: ${state.query}` : null,
+    ].filter(Boolean);
+    addProfessionalSheet(workbook, {
+      name: "Valuation Matrix",
+      title: "Relative Valuation Matrix",
+      context: `${companies.length} companies | ${years.map((year) => `CY${year}`).join(" + ")} | ${metricNames} | ${unitLabel} | ${filterParts.join(" | ")} | Estimates as of ${formatDate(getLatestForecastDate())}`,
+      columns,
+      groups,
+      rows: companies.map((company) => ({ values: rowValues(company, columns) })),
+      freezeColumns: 2,
+      tabColor: years.length === 1 && years[0] === 2027 ? EXCEL_COLORS.blue2027 : EXCEL_COLORS.blue2028,
+    });
+
+    return {
+      workbook,
+      filename: `relative-valuation-matrix-view-${localDateStamp()}.xlsx`,
+    };
+  });
 }
 
-function downloadCsv(headers, rows, filename, companyCount) {
-  const csv = [headers, ...rows].map((row) => row.map(csvValue).join(",")).join("\r\n");
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+function createExportWorkbook(ExcelJS, subject) {
+  const workbook = new ExcelJS.Workbook();
+  const now = new Date();
+  workbook.creator = "Relative Valuation Matrix";
+  workbook.lastModifiedBy = "Relative Valuation Matrix";
+  workbook.created = now;
+  workbook.modified = now;
+  workbook.subject = subject;
+  workbook.title = "Relative Valuation Matrix";
+  workbook.company = "Relative Valuation Matrix";
+  workbook.category = "Semiconductor valuation";
+  workbook.keywords = "semiconductors, relative valuation, calendarized estimates";
+  return workbook;
+}
+
+function getExportIdentityColumns() {
+  return [
+    { key: "company_name", header: "Company", width: 30, type: "text" },
+    { key: "Ticker", header: "Ticker", width: 14, type: "text" },
+    { key: "country", header: "Country", width: 17, type: "text" },
+    { key: "segment", header: "Business", width: 38, type: "text", wrap: true },
+    { key: "market_cap_usd_bn", header: "Market cap (USD bn)", width: 20, numberFormat: "$#,##0.0;[Red]($#,##0.0);-", median: true },
+    { key: "reporting_currency", header: "Reporting currency", width: 19, type: "text" },
+    { key: "fiscal_year", header: "Fiscal year", width: 25, type: "text", wrap: true },
+  ];
+}
+
+function matrixExportHeader(metric) {
+  if (metric.baseKey === "eps") return state.perShareUnit === "usd" ? "EPS (USD/share)" : "EPS (local/share)";
+  if (metric.baseKey === "fcf") return state.perShareUnit === "usd" ? "FCF/share (USD)" : "FCF/share (local)";
+  return {
+    pe: "P/E",
+    ev_fcf: "EV/FCF",
+    leverage: "Net leverage",
+  }[metric.baseKey] || metric.label;
+}
+
+function exportNumberFormat(metric) {
+  if (metric.perShare && state.perShareUnit === "usd") return "$#,##0.00;[Red]($#,##0.00);-";
+  if (metric.perShare) return "#,##0.00;[Red](#,##0.00);-";
+  return "0.00x;[Red](0.00x);-";
+}
+
+function rowValues(company, columns) {
+  return columns.map((column) => {
+    const value = column.value ? column.value(company) : company[column.key];
+    return value === null || value === undefined || value === "" ? INSUFFICIENT_DATA : value;
+  });
+}
+
+function medianRowValues(companies, columns) {
+  const identityLabels = {
+    Ticker: "Selected set",
+    country: "n.a.",
+    segment: "Comparable metrics",
+    reporting_currency: "USD",
+    fiscal_year: "Calendarized",
+  };
+  return columns.map((column, index) => {
+    if (index === 0) return "Peer median";
+    if (!column.median) return identityLabels[column.key] || "n.a.";
+    const value = median(companies.map((company) => column.value ? column.value(company) : company[column.key]));
+    return value === null ? INSUFFICIENT_DATA : value;
+  });
+}
+
+function addProfessionalSheet(workbook, options) {
+  const sheet = workbook.addWorksheet(options.name, {
+    properties: { tabColor: { argb: options.tabColor } },
+    views: [{ state: "frozen", showGridLines: false, xSplit: Math.min(options.freezeColumns, options.columns.length - 1), ySplit: 6, topLeftCell: `${excelColumnName(options.freezeColumns + 1)}7`, activeCell: "A7" }],
+  });
+  const lastColumn = excelColumnName(options.columns.length);
+  sheet.columns = options.columns.map((column) => ({ key: column.key, width: column.width }));
+  sheet.views = [{ state: "frozen", showGridLines: false, xSplit: Math.min(options.freezeColumns, options.columns.length - 1), ySplit: 6, topLeftCell: `${excelColumnName(options.freezeColumns + 1)}7`, activeCell: "A7" }];
+  sheet.pageSetup = {
+    orientation: "landscape",
+    fitToPage: true,
+    fitToWidth: 1,
+    fitToHeight: 0,
+    margins: { left: 0.25, right: 0.25, top: 0.5, bottom: 0.5, header: 0.2, footer: 0.2 },
+  };
+  sheet.headerFooter.oddFooter = "&LRelative Valuation Matrix&CPage &P of &N&RGenerated &D";
+
+  sheet.getRow(1).height = 8;
+  sheet.mergeCells(`A2:${lastColumn}2`);
+  const titleCell = sheet.getCell("A2");
+  titleCell.value = options.title;
+  titleCell.font = { name: "Arial", size: 15, bold: true, color: { argb: EXCEL_COLORS.navy } };
+  titleCell.alignment = { vertical: "middle", horizontal: "left" };
+  sheet.getRow(2).height = 25;
+
+  sheet.mergeCells(`A3:${lastColumn}3`);
+  const contextCell = sheet.getCell("A3");
+  contextCell.value = options.context;
+  contextCell.font = { name: "Arial", size: 9, italic: true, color: { argb: EXCEL_COLORS.muted } };
+  contextCell.alignment = { vertical: "middle", horizontal: "left", wrapText: true };
+  contextCell.border = { bottom: { style: "thin", color: { argb: EXCEL_COLORS.border } } };
+  sheet.getRow(3).height = 28;
+  sheet.getRow(4).height = 8;
+
+  let groupStart = 1;
+  options.groups.forEach((group) => {
+    const groupEnd = groupStart + group.span - 1;
+    if (group.span > 1) sheet.mergeCells(5, groupStart, 5, groupEnd);
+    const cell = sheet.getCell(5, groupStart);
+    cell.value = group.label;
+    cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: group.color } };
+    cell.font = { name: "Arial", size: 10, bold: true, color: { argb: EXCEL_COLORS.white } };
+    cell.alignment = { vertical: "middle", horizontal: "center" };
+    cell.border = {
+      left: { style: "thin", color: { argb: EXCEL_COLORS.white } },
+      right: { style: "thin", color: { argb: EXCEL_COLORS.white } },
+    };
+    groupStart = groupEnd + 1;
+  });
+  sheet.getRow(5).height = 23;
+
+  const headerRow = sheet.getRow(6);
+  headerRow.values = options.columns.map((column) => column.header);
+  headerRow.height = 35;
+  let headerGroupIndex = 0;
+  let headerGroupEnd = options.groups[0].span;
+  options.columns.forEach((column, index) => {
+    while (index + 1 > headerGroupEnd && headerGroupIndex < options.groups.length - 1) {
+      headerGroupIndex += 1;
+      headerGroupEnd += options.groups[headerGroupIndex].span;
+    }
+    const cell = headerRow.getCell(index + 1);
+    cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: options.groups[headerGroupIndex].color } };
+    cell.font = { name: "Arial", size: 10, bold: true, color: { argb: EXCEL_COLORS.white } };
+    cell.alignment = { vertical: "middle", horizontal: "center", wrapText: true };
+    cell.border = {
+      left: { style: "thin", color: { argb: EXCEL_COLORS.white } },
+      right: { style: "thin", color: { argb: EXCEL_COLORS.white } },
+      bottom: { style: "medium", color: { argb: EXCEL_COLORS.navy } },
+    };
+  });
+
+  options.rows.forEach((rowData, rowIndex) => {
+    const row = sheet.addRow(rowData.values);
+    const isMedian = rowData.style === "median";
+    row.height = options.columns.some((column) => column.wrap) ? 32 : 24;
+    options.columns.forEach((column, columnIndex) => {
+      const cell = row.getCell(columnIndex + 1);
+      const missing = cell.value === INSUFFICIENT_DATA;
+      cell.font = {
+        name: "Arial",
+        size: 10,
+        bold: isMedian,
+        italic: missing,
+        color: { argb: missing ? EXCEL_COLORS.missingText : isMedian ? EXCEL_COLORS.orange : EXCEL_COLORS.body },
+      };
+      cell.alignment = {
+        vertical: "middle",
+        horizontal: column.type === "text" || typeof cell.value === "string" ? "left" : "right",
+        wrapText: Boolean(column.wrap),
+      };
+      cell.fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: isMedian ? EXCEL_COLORS.orangeSoft : missing ? EXCEL_COLORS.missingFill : rowIndex % 2 ? EXCEL_COLORS.band : EXCEL_COLORS.white },
+      };
+      cell.border = isMedian
+        ? {
+            top: { style: "medium", color: { argb: EXCEL_COLORS.orange } },
+            bottom: { style: "medium", color: { argb: EXCEL_COLORS.orange } },
+          }
+        : { bottom: { style: "thin", color: { argb: EXCEL_COLORS.border } } };
+      if (typeof cell.value === "number" && column.numberFormat) cell.numFmt = column.numberFormat;
+    });
+  });
+
+  sheet.autoFilter = {
+    from: { row: 6, column: 1 },
+    to: { row: 6, column: options.columns.length },
+  };
+  return sheet;
+}
+
+async function runExcelExport(button, companyCount, buildWorkbook) {
+  const originalHtml = button.innerHTML;
+  button.disabled = true;
+  button.setAttribute("aria-busy", "true");
+  button.innerHTML = '<span aria-hidden="true">&#8595;</span> Preparing Excel';
+  try {
+    const ExcelJS = await loadExcelJs();
+    const { workbook, filename } = await buildWorkbook(ExcelJS);
+    const buffer = await workbook.xlsx.writeBuffer();
+    downloadExcel(buffer, filename);
+    showToast(`${companyCount} companies exported to Excel.`);
+  } catch (error) {
+    console.error("Excel export failed", error);
+    showToast("Excel export could not be created. Please try again.");
+  } finally {
+    button.disabled = false;
+    button.removeAttribute("aria-busy");
+    button.innerHTML = originalHtml;
+  }
+}
+
+async function loadExcelJs() {
+  if (window.ExcelJS) return window.ExcelJS;
+  if (!excelJsPromise) {
+    excelJsPromise = (async () => {
+      let lastError;
+      for (const source of EXCELJS_SOURCES) {
+        try {
+          await loadScript(source);
+          if (window.ExcelJS) return window.ExcelJS;
+        } catch (error) {
+          lastError = error;
+        }
+      }
+      throw lastError || new Error("ExcelJS did not initialize.");
+    })().catch((error) => {
+      excelJsPromise = null;
+      throw error;
+    });
+  }
+  return excelJsPromise;
+}
+
+function loadScript(source) {
+  return new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = source;
+    script.async = true;
+    script.crossOrigin = "anonymous";
+    script.onload = resolve;
+    script.onerror = () => reject(new Error(`Could not load ${source}`));
+    document.head.appendChild(script);
+  });
+}
+
+function downloadExcel(buffer, filename) {
+  const blob = new Blob([buffer], { type: EXCEL_MIME });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
   link.download = filename;
+  link.style.display = "none";
+  document.body.appendChild(link);
   link.click();
-  URL.revokeObjectURL(url);
-  showToast(`${companyCount} companies exported.`);
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-function csvValue(value) {
-  if (value === null || value === undefined) return "";
-  const text = String(value);
-  return /[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+function latestMarketCapDate(companies) {
+  return companies.map((company) => company.market_cap_as_of).filter(Boolean).sort().at(-1) || "";
+}
+
+function percentageDecimal(value) {
+  return Number.isFinite(value) ? value / 100 : null;
+}
+
+function localDateStamp() {
+  const now = new Date();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${now.getFullYear()}-${month}-${day}`;
+}
+
+function excelColumnName(columnNumber) {
+  let value = columnNumber;
+  let name = "";
+  while (value > 0) {
+    value -= 1;
+    name = String.fromCharCode(65 + (value % 26)) + name;
+    value = Math.floor(value / 26);
+  }
+  return name;
 }
 
 function showToast(message) {
