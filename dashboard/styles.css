@@ -282,6 +282,12 @@ a {
   cursor: wait;
 }
 
+.command-icon {
+  width: 15px;
+  height: 15px;
+  flex: 0 0 auto;
+}
+
 .heading-actions {
   display: flex;
   gap: 8px;
