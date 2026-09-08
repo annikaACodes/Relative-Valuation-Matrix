@@ -8,6 +8,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DATA = path.join(ROOT, "data");
 const UNIVERSE_PATH = path.join(DATA, "semiconductor_universe.csv");
 const FORECAST_PATH = path.join(DATA, "fiscal_forecasts.csv");
+const SUPPLEMENTAL_FORECAST_PATH = path.join(DATA, "supplemental_fiscal_forecasts.csv");
 const VALUATION_PATH = path.join(DATA, "valuation_inputs.csv");
 const FX_PATH = path.join(DATA, "fx_rates.csv");
 const USD_OVERRIDE_PATH = path.join(DATA, "usd_per_share_overrides.csv");
@@ -28,6 +29,12 @@ const METRIC_COLUMNS = [
   "CY2028 P/E",
   "CY2028 EV/FCF",
   "CY2028 Net leverage",
+];
+
+const FORECAST_VALUE_COLUMNS = [
+  "fiscal_period", "reporting_currency", "net_income", "income_scale", "ebitda",
+  "fcf", "fcf_scale", "net_debt", "net_debt_scale", "diluted_shares_thousands",
+  "source_eps", "share_source_method",
 ];
 
 function parseCsv(text) {
@@ -163,8 +170,54 @@ function fixed(value, digits) {
   return value.toFixed(digits).replace(/\.0+$/, "").replace(/(\.\d*?)0+$/, "$1");
 }
 
+function mergeForecasts(primaryRows, supplementalRows) {
+  const merged = new Map(
+    primaryRows.map((row) => [`${row.company_id}:${row.fiscal_year}`, { ...row }]),
+  );
+
+  for (const supplemental of supplementalRows) {
+    const key = `${supplemental.company_id}:${supplemental.fiscal_year}`;
+    const existing = merged.get(key);
+    const row = existing ? { ...existing } : {
+      company_id: supplemental.company_id,
+      fiscal_year: supplemental.fiscal_year,
+    };
+    const overrides = new Set(
+      (supplemental.override_fields ?? "").split(";").map((field) => field.trim()).filter(Boolean),
+    );
+    let applied = !existing;
+
+    for (const column of FORECAST_VALUE_COLUMNS) {
+      const value = supplemental[column] ?? "";
+      if (value !== "" && (!existing || !row[column] || overrides.has(column))) {
+        row[column] = value;
+        applied = true;
+      }
+    }
+    if (overrides.has("diluted_shares_thousands") && supplemental.share_source_method) {
+      row.share_source_method = supplemental.share_source_method;
+    }
+    if (applied) {
+      row.source_url = existing?.source_url || supplemental.source_url;
+      row.source_retrieved_at = [existing?.source_retrieved_at, supplemental.source_retrieved_at]
+        .filter(Boolean)
+        .sort()
+        .at(-1) ?? "";
+    }
+    merged.set(key, row);
+  }
+
+  return [...merged.values()].sort((a, b) => (
+    a.company_id.localeCompare(b.company_id) || Number(a.fiscal_year) - Number(b.fiscal_year)
+  ));
+}
+
 const universe = parseCsv(fs.readFileSync(UNIVERSE_PATH, "utf8"));
-const forecasts = parseCsv(fs.readFileSync(FORECAST_PATH, "utf8"));
+const primaryForecasts = parseCsv(fs.readFileSync(FORECAST_PATH, "utf8"));
+const supplementalForecasts = fs.existsSync(SUPPLEMENTAL_FORECAST_PATH)
+  ? parseCsv(fs.readFileSync(SUPPLEMENTAL_FORECAST_PATH, "utf8"))
+  : [];
+const forecasts = mergeForecasts(primaryForecasts, supplementalForecasts);
 const valuations = parseCsv(fs.readFileSync(VALUATION_PATH, "utf8"));
 const fxRates = parseCsv(fs.readFileSync(FX_PATH, "utf8"));
 const usdOverrides = parseCsv(fs.readFileSync(USD_OVERRIDE_PATH, "utf8"));
@@ -275,7 +328,11 @@ for (const company of universe) {
       missing_input_count: String(missing),
       earnings_basis: usesNetIncomeFallback ? "mixed-or-net-income" : "published-consensus-eps",
       valuation_date: valuation?.valuation_date ?? "",
-      forecast_source_date: fiscalRows[0]?.source_retrieved_at ?? "",
+      forecast_source_date: fiscalRows
+        .map((row) => row.source_retrieved_at)
+        .filter(Boolean)
+        .sort()
+        .at(-1) ?? "",
     });
   }
 }
@@ -314,3 +371,4 @@ const fcfUsdCoverage = output.filter((row) => row.fcf_per_share_usd !== "").leng
 console.log(`Wrote ${OUTPUT_PATH}`);
 console.log(`Complete rows: CY2027 ${complete2027}/${universe.length}; CY2028 ${complete2028}/${universe.length}; flat-tail rows ${flatTail}`);
 console.log(`USD coverage: EPS ${epsUsdCoverage}/${output.length}; FCF/share ${fcfUsdCoverage}/${output.length}`);
+console.log(`Applied ${supplementalForecasts.length} supplemental fiscal rows over ${primaryForecasts.length} primary rows`);

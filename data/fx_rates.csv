@@ -6,3 +6,5 @@ rate_date,currency,usd_per_currency,calculation,source_url,source_note
 2026-09-03,KRW,0.000736763316,ECB EUR cross-rate,https://eur-lex.europa.eu/eli/C/2026/4599/oj/eng,USD per KRW = 1.1615 / 1576.49
 2026-09-03,CHF,1.236954206603,ECB EUR cross-rate,https://eur-lex.europa.eu/eli/C/2026/4599/oj/eng,USD per CHF = 1.1615 / 0.9390
 2026-09-03,TWD,0.031491103763,CBC direct USD/TWD,https://www.cbc.gov.tw/en/lp-700-2-1-20.html,USD per TWD = 1 / 31.755 using the Taiwan interbank closing rate
+2026-09-04,USD,1,identity,,Official USD-reported figures are retained without conversion
+2026-09-08,CNY,0.149019708479,ECB EUR cross-rate,https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.en.html,USD per CNY = 1.1614 / 7.7936

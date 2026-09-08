@@ -2,7 +2,7 @@
 
 ## Scope and source date
 
-The dataset covers CY2027 and CY2028 for the 104-company semiconductor universe. Its current source dates are stored on every raw forecast, valuation, FX, and market-cap row and are displayed automatically in the dashboard and Excel exports. A GitHub Actions workflow refreshes the complete snapshot every Sunday at midnight in `America/New_York`. Forward fiscal-year consensus inputs come from the MarketScreener analyst forecast page recorded on every raw row. Historical values and fiscal calendars were checked against company filings, including SEC 10-K filings for U.S. issuers. The three exact FCF checks in `data/sec_historical_checks.csv` reconcile without a difference.
+The dataset covers CY2027 and CY2028 for the 104-company semiconductor universe. Its current source dates are stored on every raw forecast, valuation, FX, and market-cap row and are displayed automatically in the dashboard and Excel exports. A GitHub Actions workflow refreshes the complete snapshot every Sunday at midnight in `America/New_York`. MarketScreener is the primary fiscal-year consensus feed. Where it has a genuine gap, `data/supplemental_fiscal_forecasts.csv` retains sourced values from FactSet pages, local analyst-consensus portals, issuer filings, and detailed broker models. Historical values and fiscal calendars were checked against company filings, including SEC 10-K filings for U.S. issuers. The three exact FCF checks in `data/sec_historical_checks.csv` reconcile without a difference.
 
 SEC filings do not contain 2027-2029 consensus estimates, so filings are historical and calendar anchors rather than the source of forward estimates. Local share prices are dated in `data/valuation_inputs.csv`.
 
@@ -10,9 +10,11 @@ USD per-share display values use the same weekly snapshot as the valuation input
 
 ## Process summary
 
-Forward fiscal estimates primarily come from MarketScreener analyst pages, with a source URL retained on every raw row, including NVIDIA and TSMC. SEC filings provide historical and accounting-basis checks because they do not contain future consensus estimates.
+Forward fiscal estimates primarily come from MarketScreener analyst pages, with a source URL retained on every raw row, including NVIDIA and TSMC. SEC filings provide historical and accounting-basis checks because they do not contain future consensus estimates. The researched gap-fill layer uses FactSet estimates displayed by Finanzen, institution consensus displayed by 10jqka, and full financial models from published broker reports. Each supplemental row retains its source URL, retrieval date, method note, and any field deliberately overriding the primary source.
 
 The code determines actual fiscal year-end dates and day-weights adjacent fiscal years. Earnings, FCF, EBITDA, debt, and shares are calendarized as totals; EPS and FCF/share are calculated only afterward. Currency conversion is applied after local per-share values are calculated.
+
+Supplements are field-level and fill-only by default. A populated primary value remains authoritative unless the supplemental row explicitly lists that field in `override_fields`, which is reserved for cases such as an official post-IPO share count. When a full model publishes cash flow from operations and capital expenditure but not FCF, FCF is reconstructed as CFO minus capital expenditure. No value is inferred from revenue growth, historical margins, peer ratios, or an unsupported interpolation.
 
 ## Calendarization
 
@@ -41,13 +43,17 @@ Negative P/E and EV/FCF values are left blank as not meaningful. Negative net le
 
 If FY(Y+1) is missing and the uncovered part of the calendar year is no more than 34%, the script holds FY(Y) flat for that tail and labels the result `flat-tail`. It never extrapolates a larger missing period. Missing components remain blank and are labeled `partial`.
 
-## Initial audit coverage
+## Current audit coverage
 
-- CY2027: 91 of 104 companies have all five metrics.
-- CY2028: 86 of 104 companies have all five metrics.
+- All 208 CY2027/CY2028 rows have EPS in local currency and USD.
+- 203 of 208 rows have FCF/share in local currency and USD.
+- Across the seven stored display fields, 1,408 of 1,456 cells are populated (96.70%).
+- CY2027 has 497 of 520 core metric cells populated; CY2028 has 500 of 520.
 - 11 calendar-year rows use the limited flat-tail assumption, all in CY2028.
-- Five recent listings have no usable forward consensus statement: Cerebras Systems, SJ Semiconductor, Moore Threads Technology, DapuStor, and Xi'an Eswin Material Technology.
-- Other partial rows retain every metric that can be calculated; they are not filled with invented values.
+- The September 8 gap audit recovered 119 of the 167 cells that had previously displayed `Insufficient Data`.
+- Remaining blanks are either economically undefined valuation ratios with negative earnings or FCF, or fields for which no defensible public forecast was found. Partial rows retain every metric that can be calculated; they are not filled with invented values.
+
+The detailed recovery and residual-gap review is in `docs/gap-fill-audit-2026-09-08.md`.
 
 ## Accuracy checks
 
@@ -65,7 +71,8 @@ The scheduled workflow runs `python scripts/update_market_data.py` first. It req
 
 1. Run `python scripts/update_market_data.py`.
 2. Add issuer-published USD per-share values to `data/usd_per_share_overrides.csv` only when they use the underlying ordinary-share basis.
-3. Run `node scripts/calendarize_forecasts.mjs`.
-4. Run `python scripts/build_database.py`.
+3. Add defensible, sourced primary-feed gaps to `data/supplemental_fiscal_forecasts.csv`.
+4. Run `node scripts/calendarize_forecasts.mjs`.
+5. Run `python scripts/build_database.py`.
 
 The first command regenerates the wide columns in `data/semiconductor_universe.csv` and the normalized `data/calendarized_metrics.csv`. The second rebuilds SQLite.

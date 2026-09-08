@@ -90,6 +90,16 @@ CREATE TABLE fiscal_forecasts (
     PRIMARY KEY (company_id, fiscal_year)
 ) WITHOUT ROWID;
 
+CREATE TABLE forecast_supplements (
+    company_id TEXT NOT NULL REFERENCES companies(company_id) ON DELETE CASCADE,
+    fiscal_year INTEGER NOT NULL,
+    override_fields TEXT NOT NULL DEFAULT '',
+    source_url TEXT NOT NULL,
+    source_retrieved_at TEXT NOT NULL,
+    source_note TEXT NOT NULL,
+    PRIMARY KEY (company_id, fiscal_year)
+) WITHOUT ROWID;
+
 CREATE TABLE valuation_inputs (
     company_id TEXT PRIMARY KEY REFERENCES companies(company_id) ON DELETE CASCADE,
     valuation_date TEXT NOT NULL,

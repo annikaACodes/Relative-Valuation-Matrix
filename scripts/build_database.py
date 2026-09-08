@@ -19,6 +19,11 @@ DEFAULT_DB_PATH = DATA_DIR / "relative_valuation.sqlite"
 THRESHOLD_USD_BN = 15.0
 COMPANY_ID_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 NONSTANDARD_FISCAL_YEAR_RE = re.compile(r"^Non-standard \((.+)\)$")
+FORECAST_VALUE_COLUMNS = (
+    "fiscal_period", "reporting_currency", "net_income", "income_scale", "ebitda",
+    "fcf", "fcf_scale", "net_debt", "net_debt_scale", "diluted_shares_thousands",
+    "source_eps", "share_source_method",
+)
 
 
 def read_rows(path: Path) -> list[dict[str, str]]:
@@ -44,6 +49,67 @@ def require_columns(path: Path, rows: list[dict[str, str]], columns: set[str]) -
         raise ValueError(f"{path} is missing columns: {', '.join(sorted(missing))}")
 
 
+def merge_fiscal_forecasts(
+    primary_rows: list[dict[str, str]],
+    supplemental_rows: list[dict[str, str]],
+) -> list[dict[str, str]]:
+    merged: dict[tuple[str, str], dict[str, str]] = {}
+    for row in primary_rows:
+        key = (row["company_id"], row["fiscal_year"])
+        if key in merged:
+            raise ValueError(f"Duplicate primary fiscal forecast: {key}")
+        merged[key] = dict(row)
+
+    seen_supplements: set[tuple[str, str]] = set()
+    for supplemental in supplemental_rows:
+        key = (supplemental["company_id"], supplemental["fiscal_year"])
+        if key in seen_supplements:
+            raise ValueError(f"Duplicate supplemental fiscal forecast: {key}")
+        seen_supplements.add(key)
+        existing = merged.get(key)
+        row = dict(existing) if existing else {
+            "company_id": supplemental["company_id"],
+            "fiscal_year": supplemental["fiscal_year"],
+            **{column: "" for column in FORECAST_VALUE_COLUMNS},
+        }
+        overrides = {
+            field.strip()
+            for field in supplemental["override_fields"].split(";")
+            if field.strip()
+        }
+        invalid_overrides = overrides - set(FORECAST_VALUE_COLUMNS)
+        if invalid_overrides:
+            raise ValueError(
+                f"Invalid supplemental override fields for {key}: "
+                f"{', '.join(sorted(invalid_overrides))}"
+            )
+        applied = existing is None
+        for column in FORECAST_VALUE_COLUMNS:
+            value = supplemental[column]
+            if value and (existing is None or not row.get(column) or column in overrides):
+                row[column] = value
+                applied = True
+        if (
+            "diluted_shares_thousands" in overrides
+            and supplemental["share_source_method"]
+        ):
+            row["share_source_method"] = supplemental["share_source_method"]
+        if applied:
+            row["source_url"] = (existing or {}).get("source_url") or supplemental["source_url"]
+            row["source_retrieved_at"] = max(
+                filter(
+                    None,
+                    [
+                        (existing or {}).get("source_retrieved_at", ""),
+                        supplemental["source_retrieved_at"],
+                    ],
+                )
+            )
+        merged[key] = row
+
+    return sorted(merged.values(), key=lambda row: (row["company_id"], int(row["fiscal_year"])))
+
+
 def valid_date(value: str, field: str) -> str:
     try:
         return date.fromisoformat(value).isoformat()
@@ -66,6 +132,7 @@ def load_and_validate() -> tuple[list[dict[str, str]], ...]:
     definitions_path = DATA_DIR / "datapoint_definitions.csv"
     values_path = DATA_DIR / "datapoint_values.csv"
     fiscal_forecasts_path = DATA_DIR / "fiscal_forecasts.csv"
+    supplemental_forecasts_path = DATA_DIR / "supplemental_fiscal_forecasts.csv"
     valuation_inputs_path = DATA_DIR / "valuation_inputs.csv"
     fx_rates_path = DATA_DIR / "fx_rates.csv"
     usd_overrides_path = DATA_DIR / "usd_per_share_overrides.csv"
@@ -75,7 +142,8 @@ def load_and_validate() -> tuple[list[dict[str, str]], ...]:
     alternates = read_rows(alternates_path)
     definitions = read_rows(definitions_path)
     values = read_rows(values_path)
-    fiscal_forecasts = read_rows(fiscal_forecasts_path)
+    primary_fiscal_forecasts = read_rows(fiscal_forecasts_path)
+    supplemental_forecasts = read_rows(supplemental_forecasts_path)
     valuation_inputs = read_rows(valuation_inputs_path)
     fx_rates = read_rows(fx_rates_path)
     usd_overrides = read_rows(usd_overrides_path)
@@ -108,12 +176,23 @@ def load_and_validate() -> tuple[list[dict[str, str]], ...]:
     )
     require_columns(
         fiscal_forecasts_path,
-        fiscal_forecasts,
+        primary_fiscal_forecasts,
         {
             "company_id", "fiscal_year", "fiscal_period", "reporting_currency",
             "net_income", "income_scale", "ebitda", "fcf", "fcf_scale",
             "net_debt", "net_debt_scale", "diluted_shares_thousands", "source_eps",
             "share_source_method", "source_url", "source_retrieved_at",
+        },
+    )
+    require_columns(
+        supplemental_forecasts_path,
+        supplemental_forecasts,
+        {
+            "company_id", "fiscal_year", "fiscal_period", "reporting_currency",
+            "net_income", "income_scale", "ebitda", "fcf", "fcf_scale",
+            "net_debt", "net_debt_scale", "diluted_shares_thousands", "source_eps",
+            "share_source_method", "source_url", "source_retrieved_at",
+            "override_fields", "source_note",
         },
     )
     require_columns(
@@ -259,6 +338,9 @@ def load_and_validate() -> tuple[list[dict[str, str]], ...]:
             if definition_types[datapoint_key] == "date":
                 valid_date(text, f"date_value/{company_id}/{datapoint_key}")
 
+    fiscal_forecasts = merge_fiscal_forecasts(
+        primary_fiscal_forecasts, supplemental_forecasts
+    )
     forecast_keys: set[tuple[str, int]] = set()
     for row in fiscal_forecasts:
         company_id = row["company_id"]
@@ -270,6 +352,18 @@ def load_and_validate() -> tuple[list[dict[str, str]], ...]:
             raise ValueError(f"Duplicate fiscal forecast: {key}")
         forecast_keys.add(key)
         valid_date(row["source_retrieved_at"], f"source_retrieved_at/{company_id}/{fiscal_year}")
+
+    for row in supplemental_forecasts:
+        company_id = row["company_id"]
+        fiscal_year = int(row["fiscal_year"])
+        if company_id not in company_ids:
+            raise ValueError(f"Unknown supplemental forecast company_id: {company_id}")
+        valid_date(
+            row["source_retrieved_at"],
+            f"supplemental_source_retrieved_at/{company_id}/{fiscal_year}",
+        )
+        if not row["source_url"] or not row["source_note"]:
+            raise ValueError(f"Missing supplemental provenance: {company_id}/{fiscal_year}")
 
     valuation_company_ids: set[str] = set()
     for row in valuation_inputs:
@@ -341,7 +435,7 @@ def load_and_validate() -> tuple[list[dict[str, str]], ...]:
 
     return (
         universe, alternates, definitions, values,
-        fiscal_forecasts, valuation_inputs, fx_rates, usd_overrides,
+        fiscal_forecasts, supplemental_forecasts, valuation_inputs, fx_rates, usd_overrides,
         calendarized_metrics,
     )
 
@@ -349,7 +443,7 @@ def load_and_validate() -> tuple[list[dict[str, str]], ...]:
 def build_database(output_path: Path) -> dict[str, int]:
     (
         universe, alternates, definitions, values,
-        fiscal_forecasts, valuation_inputs, fx_rates, usd_overrides,
+        fiscal_forecasts, supplemental_forecasts, valuation_inputs, fx_rates, usd_overrides,
         calendarized_metrics,
     ) = load_and_validate()
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -367,7 +461,7 @@ def build_database(output_path: Path) -> dict[str, int]:
                 ("database_name", "Relative Valuation Matrix"),
                 ("generated_at_utc", generated_at),
                 ("market_cap_threshold_usd_bn", str(THRESHOLD_USD_BN)),
-                ("seed_format_version", "5"),
+                ("seed_format_version", "6"),
             ],
         )
 
@@ -449,6 +543,20 @@ def build_database(output_path: Path) -> dict[str, int]:
                     },
                 }
                 for row in fiscal_forecasts
+            ],
+        )
+        connection.executemany(
+            """INSERT INTO forecast_supplements
+               (company_id, fiscal_year, override_fields, source_url,
+                source_retrieved_at, source_note)
+               VALUES (:company_id, :fiscal_year, :override_fields, :source_url,
+                       :source_retrieved_at, :source_note)""",
+            [
+                {
+                    **row,
+                    "fiscal_year": int(row["fiscal_year"]),
+                }
+                for row in supplemental_forecasts
             ],
         )
         connection.executemany(
@@ -565,6 +673,7 @@ def build_database(output_path: Path) -> dict[str, int]:
         "listings": len(universe) + len(alternates),
         "datapoint_values": len(values),
         "fiscal_forecasts": len(fiscal_forecasts),
+        "forecast_supplements": len(supplemental_forecasts),
         "fx_rates": len(fx_rates),
         "usd_per_share_overrides": len(usd_overrides),
         "calendarized_metrics": len(calendarized_metrics),

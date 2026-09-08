@@ -33,6 +33,7 @@ Included businesses cover:
 - `data/datapoint_definitions.csv`: definitions for valuation datapoints
 - `data/datapoint_values.csv`: dated company datapoint values
 - `data/fiscal_forecasts.csv`: fiscal-year consensus totals, diluted shares, and source links
+- `data/supplemental_fiscal_forecasts.csv`: sourced gap fills and narrowly declared overrides for fields absent from the primary feed
 - `data/valuation_inputs.csv`: dated local prices and the few required FX conversions
 - `data/calendarized_metrics.csv`: normalized CY2027 and CY2028 output with quality flags
 - `data/quality_checks.csv`: source EPS and P/E reconciliation detail
@@ -98,12 +99,15 @@ Text and date values are also supported with `--type text` and `--type date`.
 5. Set `universe_status` to `included` only when `market_cap_usd_bn` is above `15.0`.
 6. Refresh `data/fx_rates.csv` for each valuation date and reporting currency.
 7. Add only issuer-published, underlying-share USD values to `data/usd_per_share_overrides.csv`.
-8. Run `node scripts/calendarize_forecasts.mjs`.
-9. Run `python scripts/build_database.py`.
-10. Commit the CSV changes and regenerated SQLite file.
+8. Add researched forecast gaps to `data/supplemental_fiscal_forecasts.csv`; supplements fill blanks unless a field is explicitly named in `override_fields`.
+9. Run `node scripts/calendarize_forecasts.mjs`.
+10. Run `python scripts/build_database.py`.
+11. Commit the CSV changes and regenerated SQLite file.
 
 The build fails on duplicate companies, duplicate ticker aliases, invalid dates, unknown foreign keys, malformed datapoints, or an included company at or below the threshold.
 
 ## Weekly refresh
 
 GitHub Actions runs the updater at `00:00` every Sunday in `America/New_York`. The job validates all 104 quote pages before replacing any source file, recalculates CY2027/CY2028 values, rebuilds SQLite, runs smoke tests, and commits a successful snapshot. A source or parser failure leaves the last valid dataset unchanged and fails the Action visibly. The same workflow can be run manually from the repository's Actions page.
+
+The weekly primary refresh is merged with `data/supplemental_fiscal_forecasts.csv` during calendarization. A newly available primary value takes precedence unless a supplement carries a deliberate field-level override, so researched fills persist without replacing broader consensus unnecessarily.
