@@ -984,7 +984,7 @@ async function exportComparisonWorkbook(companies) {
 
   await runExcelExport(elements.exportCompareButton, companies.length, async (ExcelJS) => {
     const workbook = createExportWorkbook(ExcelJS, "Selected semiconductor peer comparison");
-    const identityColumns = getExportIdentityColumns();
+    const identityColumns = getCompareExportIdentityColumns();
     const comparableMetrics = [
       { key: "eps_usd", header: "EPS (USD/share)", width: 17, numberFormat: "$#,##0.00;[Red]($#,##0.00);-" },
       { key: "fcf_usd", header: "FCF/share (USD)", width: 18, numberFormat: "$#,##0.00;[Red]($#,##0.00);-" },
@@ -1139,6 +1139,14 @@ function getExportIdentityColumns() {
     { key: "market_cap_usd_bn", header: "Market cap (USD bn)", width: 20, numberFormat: "$#,##0.0;[Red]($#,##0.0);-", median: true },
     { key: "reporting_currency", header: "Reporting currency", width: 19, type: "text" },
     { key: "fiscal_year", header: "Fiscal year", width: 25, type: "text", wrap: true },
+  ];
+}
+
+function getCompareExportIdentityColumns() {
+  return [
+    { key: "company_name", header: "Company", width: 30, type: "text" },
+    { key: "Ticker", header: "Ticker", width: 14, type: "text" },
+    { key: "market_cap_usd_bn", header: "Market cap (USD bn)", width: 20, numberFormat: "$#,##0.0;[Red]($#,##0.0);-", median: true },
   ];
 }
 
