@@ -692,7 +692,7 @@ a {
 .matrix-table .metric-headers th {
   padding-right: 3px;
   padding-left: 3px;
-  font-size: 0.74rem;
+  font-size: var(--metric-header-font-size, 0.74rem);
 }
 
 .matrix-table .metric-headers small {
@@ -762,7 +762,7 @@ a {
 .matrix-table tbody td[data-year] {
   padding-right: 3px;
   padding-left: 3px;
-  font-size: 0.77rem;
+  font-size: var(--metric-cell-font-size, 0.77rem);
 }
 
 .matrix-table tbody tr.is-selected td,
@@ -771,6 +771,7 @@ a {
 }
 
 .year-group {
+  font-size: var(--year-group-font-size, 0.8rem);
   text-align: center !important;
 }
 
@@ -890,14 +891,14 @@ a {
   display: block;
   margin-top: 2px;
   color: var(--faint);
-  font-size: 0.54rem;
+  font-size: calc(var(--metric-cell-font-size, 0.77rem) - 0.18rem);
   font-weight: 700;
 }
 
 .metric-missing {
   display: block;
   color: #7d8997;
-  font-size: 0.62rem;
+  font-size: calc(var(--metric-cell-font-size, 0.77rem) - 0.14rem);
   font-weight: 650;
   line-height: 1.15;
   white-space: normal;
