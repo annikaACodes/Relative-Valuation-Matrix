@@ -6,7 +6,7 @@ An updatable SQLite database for a broad global semiconductor equity universe.
 
 The dashboard provides a sortable CY2027/CY2028 valuation matrix and a shareable comparison view for up to ten companies. Matrix controls can show either calendar year or both, display any one to five valuation metrics, and switch EPS and FCF/share between comparable USD values and each company's reporting currency. Every displayed data column supports ascending and descending sorting. The dashboard reads the CSV source files directly, so published data updates flow through without a separate frontend build.
 
-The initial screen contains **100 public companies above $15 billion in market capitalization** and **4 near-threshold watchlist companies** as of September 1, 2026. The market-cap values are screening snapshots rather than live quotes.
+The matrix retains **104 global semiconductor companies around $15 billion and above**. Market caps, local prices, FX, and forward consensus inputs refresh automatically every Sunday at midnight in `America/New_York`; the dashboard and Excel exports read their freshness dates directly from the refreshed data.
 
 ## Universe definition
 
@@ -24,7 +24,7 @@ Included businesses cover:
 
 `core` means the company is principally a semiconductor or semiconductor-production business. `extended` means the company is diversified but has a large and strategically important semiconductor-enabling business. General electronics assembly, servers, passive components, and industrial suppliers with only incidental semiconductor exposure are excluded.
 
-`included` rows cleared the $15B screen in the snapshot. `watchlist` rows sit just below it and are retained so daily price or FX movements can be updated without rediscovering the company.
+`included` rows currently clear the $15B screen. `watchlist` rows sit below it and remain in the 104-company matrix so ordinary price or FX movements do not remove a useful peer.
 
 ## Files
 
@@ -43,17 +43,20 @@ Included businesses cover:
 - `scripts/query_database.py`: looks up a company by name or any stored ticker
 - `scripts/set_datapoint.py`: adds or replaces a datapoint and rebuilds SQLite
 - `scripts/calendarize_forecasts.mjs`: day-weights fiscal forecasts into calendar years
+- `scripts/update_market_data.py`: transactionally refreshes weekly quotes and fiscal consensus inputs
+- `tests/test_update_market_data.py`: parser and safety tests for the unattended refresh
 - `docs/methodology.md`: formulas, source process, coverage, and validation results
 - `data/fx_rates.csv`: dated official-reference FX inputs used for USD per-share metrics
 - `data/usd_per_share_overrides.csv`: higher-priority official USD per-share disclosures
 - `.github/workflows/rebuild-database.yml`: regenerates SQLite after CSV or schema updates
+- `.github/workflows/weekly-market-data-refresh.yml`: runs the complete refresh every Sunday at midnight New York time
 
 The CSV files are the source of truth. The SQLite file is generated from them and should not be edited directly.
 When source files are edited on GitHub, the included workflow validates them and commits the regenerated database automatically.
 
 ## Build and query
 
-Node.js and Python 3 are required; both scripts use only standard libraries.
+Node.js and Python 3 are required; the build and refresh scripts use only standard libraries.
 
 ```bash
 node scripts/calendarize_forecasts.mjs
@@ -62,6 +65,7 @@ python scripts/query_database.py NVDA
 python scripts/query_database.py NVDA --datapoint cy2027_pe
 python scripts/query_database.py 2330.TW --datapoint market_cap_usd_bn
 python scripts/query_database.py "Sony Group" --json
+python scripts/update_market_data.py --company nvidia --dry-run
 ```
 
 Queries accept a company id, exact or partial English company name, raw ticker, or exchange-qualified lookup symbol.
@@ -99,3 +103,7 @@ Text and date values are also supported with `--type text` and `--type date`.
 10. Commit the CSV changes and regenerated SQLite file.
 
 The build fails on duplicate companies, duplicate ticker aliases, invalid dates, unknown foreign keys, malformed datapoints, or an included company at or below the threshold.
+
+## Weekly refresh
+
+GitHub Actions runs the updater at `00:00` every Sunday in `America/New_York`. The job validates all 104 quote pages before replacing any source file, recalculates CY2027/CY2028 values, rebuilds SQLite, runs smoke tests, and commits a successful snapshot. A source or parser failure leaves the last valid dataset unchanged and fails the Action visibly. The same workflow can be run manually from the repository's Actions page.
