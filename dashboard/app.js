@@ -1045,7 +1045,7 @@ async function exportComparisonWorkbook(companies) {
     addProfessionalSheet(workbook, {
       name: "Detailed Values",
       title: "Detailed Valuation Values",
-      context: "Local-currency and USD per-share values are shown separately; USD values are per underlying ordinary share.",
+      context: `Local-currency and USD per-share values are shown separately; USD values are per underlying ordinary share. Estimates as of ${formatDate(getLatestForecastDate())} | Market capitalizations as of ${formatDate(latestMarketCapDate(companies))}`,
       columns: detailColumns,
       groups: [
         { label: "Company profile", span: identitySpan, color: EXCEL_COLORS.navy },
@@ -1100,7 +1100,7 @@ async function exportMatrixView(companies) {
     addProfessionalSheet(workbook, {
       name: "Valuation Matrix",
       title: "Relative Valuation Matrix",
-      context: `${companies.length} companies | ${years.map((year) => `CY${year}`).join(" + ")} | ${metricNames} | ${unitLabel} | ${filterParts.join(" | ")} | Estimates as of ${formatDate(getLatestForecastDate())}`,
+      context: `${companies.length} companies | ${years.map((year) => `CY${year}`).join(" + ")} | ${metricNames} | ${unitLabel} | ${filterParts.join(" | ")} | Estimates as of ${formatDate(getLatestForecastDate())} | Market capitalizations as of ${formatDate(latestMarketCapDate(companies))}`,
       columns,
       groups,
       rows: companies.map((company) => ({ values: rowValues(company, columns) })),
