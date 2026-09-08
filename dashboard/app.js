@@ -81,6 +81,7 @@ function cacheElements() {
     "metricSelector",
     "metricSelectionCount",
     "matrixResultCount",
+    "matrixTable",
     "matrixColgroup",
     "matrixHead",
     "matrixBody",
@@ -358,15 +359,22 @@ function renderMatrix() {
 function renderMatrixStructure(years, metrics) {
   const metricColumnCount = years.length * metrics.length;
   const actionArea = 3.5;
-  const marketCapArea = 8;
-  const metricArea = Math.min(61.6, 17.6 + (metricColumnCount * 4.4));
-  const flexibleIdentityArea = 100 - actionArea - marketCapArea - metricArea;
   const widths = {
-    company: flexibleIdentityArea * 0.64,
-    marketCap: marketCapArea,
-    business: flexibleIdentityArea * 0.36,
-    metric: metricArea / metricColumnCount,
+    company: 17.216,
+    marketCap: 8,
+    business: 9.684,
+    metric: 61.6 / metricColumnCount,
   };
+  const metricType = widths.metric >= 20
+    ? { cell: "0.96rem", header: "0.88rem", year: "0.92rem" }
+    : widths.metric >= 12
+      ? { cell: "0.9rem", header: "0.84rem", year: "0.88rem" }
+      : widths.metric >= 8
+        ? { cell: "0.84rem", header: "0.79rem", year: "0.85rem" }
+        : { cell: "0.77rem", header: "0.74rem", year: "0.8rem" };
+  elements.matrixTable.style.setProperty("--metric-cell-font-size", metricType.cell);
+  elements.matrixTable.style.setProperty("--metric-header-font-size", metricType.header);
+  elements.matrixTable.style.setProperty("--year-group-font-size", metricType.year);
   const metricColumns = years.flatMap((year) => metrics.map((metric) => (
     `<col class="metric-col" data-year="${year}" data-metric="${escapeHtml(metric.baseKey)}" style="width:${widths.metric.toFixed(3)}%" />`
   ))).join("");
@@ -984,7 +992,7 @@ async function exportComparisonWorkbook(companies) {
 
   await runExcelExport(elements.exportCompareButton, companies.length, async (ExcelJS) => {
     const workbook = createExportWorkbook(ExcelJS, "Selected semiconductor peer comparison");
-    const identityColumns = getCompareExportIdentityColumns();
+    const identityColumns = getExportIdentityColumns();
     const comparableMetrics = [
       { key: "eps_usd", header: "EPS (USD/share)", width: 17, numberFormat: "$#,##0.00;[Red]($#,##0.00);-" },
       { key: "fcf_usd", header: "FCF/share (USD)", width: 18, numberFormat: "$#,##0.00;[Red]($#,##0.00);-" },
@@ -1131,18 +1139,6 @@ function createExportWorkbook(ExcelJS, subject) {
 }
 
 function getExportIdentityColumns() {
-  return [
-    { key: "company_name", header: "Company", width: 30, type: "text" },
-    { key: "Ticker", header: "Ticker", width: 14, type: "text" },
-    { key: "country", header: "Country", width: 17, type: "text" },
-    { key: "segment", header: "Business", width: 38, type: "text", wrap: true },
-    { key: "market_cap_usd_bn", header: "Market cap (USD bn)", width: 20, numberFormat: "$#,##0.0;[Red]($#,##0.0);-", median: true },
-    { key: "reporting_currency", header: "Reporting currency", width: 19, type: "text" },
-    { key: "fiscal_year", header: "Fiscal year", width: 25, type: "text", wrap: true },
-  ];
-}
-
-function getCompareExportIdentityColumns() {
   return [
     { key: "company_name", header: "Company", width: 30, type: "text" },
     { key: "Ticker", header: "Ticker", width: 14, type: "text" },
