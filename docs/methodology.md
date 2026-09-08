@@ -2,17 +2,17 @@
 
 ## Scope and source date
 
-The forward dataset was collected on 2026-09-03. It covers CY2027 and CY2028 for the 104-company semiconductor universe. Forward fiscal-year consensus inputs come from the MarketScreener analyst forecast page recorded on every raw row. Historical values and fiscal calendars were checked against company filings, including SEC 10-K filings for U.S. issuers. The three exact FCF checks in `data/sec_historical_checks.csv` reconcile without a difference.
+The dataset covers CY2027 and CY2028 for the 104-company semiconductor universe. Its current source dates are stored on every raw forecast, valuation, FX, and market-cap row and are displayed automatically in the dashboard and Excel exports. A GitHub Actions workflow refreshes the complete snapshot every Sunday at midnight in `America/New_York`. Forward fiscal-year consensus inputs come from the MarketScreener analyst forecast page recorded on every raw row. Historical values and fiscal calendars were checked against company filings, including SEC 10-K filings for U.S. issuers. The three exact FCF checks in `data/sec_historical_checks.csv` reconcile without a difference.
 
-SEC filings do not contain 2027-2029 consensus estimates, so filings are historical and calendar anchors rather than the source of forward estimates. Local share prices are dated in `data/valuation_inputs.csv`. The EUR/USD and HKD/USD conversions are the 2026-09-03 Frankfurter rates; all other quote and reporting currencies already match.
+SEC filings do not contain 2027-2029 consensus estimates, so filings are historical and calendar anchors rather than the source of forward estimates. Local share prices are dated in `data/valuation_inputs.csv`.
 
-USD per-share display values use the same 2026-09-03 snapshot as the valuation inputs. USD-reporting source values are retained exactly. Non-USD values use official reference rates stored in `data/fx_rates.csv`: ECB rates for EUR, CNY, JPY, KRW, and CHF, and the Central Bank of the Republic of China (Taiwan) interbank closing rate for TWD. ECB cross-rates are calculated as `USD per currency = USD per EUR / currency per EUR`. An issuer-published USD value entered in `data/usd_per_share_overrides.csv` takes priority over FX conversion.
+USD per-share display values use the same weekly snapshot as the valuation inputs. USD-reporting source values are retained exactly. Non-USD values use dated rates stored in `data/fx_rates.csv`: Frankfurter reference rates for supported currencies and a daily TWD reference rate from ExchangeRate-API. MarketScreener's exact USD/local market-cap displays independently cross-check every rate and provide a fallback when a reference endpoint is temporarily unavailable. An issuer-published USD value entered in `data/usd_per_share_overrides.csv` takes priority over FX conversion.
 
 ## Process summary
 
 Forward fiscal estimates primarily come from MarketScreener analyst pages, with a source URL retained on every raw row, including NVIDIA and TSMC. SEC filings provide historical and accounting-basis checks because they do not contain future consensus estimates.
 
-The code determines actual fiscal year-end dates and day-weights adjacent fiscal years. Earnings, FCF, EBITDA, debt, and shares are calendarized as totals; EPS and FCF/share are calculated only afterward. Required EUR/USD and HKD/USD conversions use Frankfurter.
+The code determines actual fiscal year-end dates and day-weights adjacent fiscal years. Earnings, FCF, EBITDA, debt, and shares are calendarized as totals; EPS and FCF/share are calculated only afterward. Currency conversion is applied after local per-share values are calculated.
 
 ## Calendarization
 
@@ -41,7 +41,7 @@ Negative P/E and EV/FCF values are left blank as not meaningful. Negative net le
 
 If FY(Y+1) is missing and the uncovered part of the calendar year is no more than 34%, the script holds FY(Y) flat for that tail and labels the result `flat-tail`. It never extrapolates a larger missing period. Missing components remain blank and are labeled `partial`.
 
-## Coverage
+## Initial audit coverage
 
 - CY2027: 91 of 104 companies have all five metrics.
 - CY2028: 86 of 104 companies have all five metrics.
@@ -61,11 +61,11 @@ These statistics measure calculation and source consistency, not the chance that
 
 ## Updating
 
-1. Replace or add fiscal estimates in `data/fiscal_forecasts.csv`.
-2. Refresh prices and any required FX in `data/valuation_inputs.csv`.
-3. Add official snapshot-date reporting-currency/USD rates to `data/fx_rates.csv`.
-4. Add issuer-published USD per-share values to `data/usd_per_share_overrides.csv` only when they use the underlying ordinary-share basis.
-5. Run `node scripts/calendarize_forecasts.mjs`.
-6. Run `python scripts/build_database.py`.
+The scheduled workflow runs `python scripts/update_market_data.py` first. It requires all 104 quote pages to validate, retries transient failures, accepts explicitly blank consensus cells, and writes no files if a required source fails. Market caps that are not exposed directly are rolled forward using current price and FX; when no prior quote exists, the latest issuer share count is used. The workflow then performs the same two deterministic build steps used for manual updates.
+
+1. Run `python scripts/update_market_data.py`.
+2. Add issuer-published USD per-share values to `data/usd_per_share_overrides.csv` only when they use the underlying ordinary-share basis.
+3. Run `node scripts/calendarize_forecasts.mjs`.
+4. Run `python scripts/build_database.py`.
 
 The first command regenerates the wide columns in `data/semiconductor_universe.csv` and the normalized `data/calendarized_metrics.csv`. The second rebuilds SQLite.
