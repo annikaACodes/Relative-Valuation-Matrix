@@ -1,5 +1,7 @@
 # Forecast gap-fill audit: September 8, 2026
 
+> Historical scope note: this audit describes the former 104-company universe before the September 9 reduction to the 52 companies retained through Microchip Technology. Current coverage statistics are in `docs/methodology.md`.
+
 ## Result
 
 The matrix began with 167 blank display cells across CY2027 and CY2028. A company-by-company search recovered 119 of them, leaving 48 blank cells and raising display-field coverage to 96.70%. All 208 rows now have local and USD EPS; 203 have local and USD FCF/share.

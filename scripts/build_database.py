@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DATA_DIR = ROOT / "data"
 SCHEMA_PATH = ROOT / "database" / "schema.sql"
 DEFAULT_DB_PATH = DATA_DIR / "relative_valuation.sqlite"
-THRESHOLD_USD_BN = 15.0
+THRESHOLD_USD_BN = 39.6
 COMPANY_ID_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 NONSTANDARD_FISCAL_YEAR_RE = re.compile(r"^Non-standard \((.+)\)$")
 FORECAST_VALUE_COLUMNS = (
@@ -261,8 +261,8 @@ def load_and_validate() -> tuple[list[dict[str, str]], ...]:
         market_cap = float(row["market_cap_usd_bn"])
         if market_cap <= 0:
             raise ValueError(f"Non-positive market cap for {company_id}")
-        if row["universe_status"] == "included" and market_cap <= THRESHOLD_USD_BN:
-            raise ValueError(f"Included company is not above ${THRESHOLD_USD_BN:g}B: {company_id}")
+        if row["universe_status"] == "included" and market_cap < THRESHOLD_USD_BN:
+            raise ValueError(f"Included company is below ${THRESHOLD_USD_BN:g}B: {company_id}")
         valid_date(row["market_cap_as_of"], f"market_cap_as_of/{company_id}")
         if not row["Ticker"]:
             raise ValueError(f"Blank Ticker for {company_id}")

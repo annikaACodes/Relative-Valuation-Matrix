@@ -4,9 +4,9 @@ An updatable SQLite database for a broad global semiconductor equity universe.
 
 **Dashboard:** https://annikaacodes.github.io/Relative-Valuation-Matrix/
 
-The dashboard provides a sortable CY2027/CY2028 valuation matrix and a shareable comparison view for up to ten companies. Matrix controls can show either calendar year or both, display any one to five valuation metrics, and switch EPS and FCF/share between comparable USD values and each company's reporting currency. Every displayed data column supports ascending and descending sorting. The dashboard reads the CSV source files directly, so published data updates flow through without a separate frontend build.
+The dashboard provides a sortable valuation matrix and a shareable comparison view for up to ten companies. The matrix always shows CY2027 and CY2028 side by side for P/E, EV/FCF, and Net leverage. Every displayed data column supports ascending and descending sorting. The dashboard reads the CSV source files directly, so published data updates flow through without a separate frontend build.
 
-The matrix retains **104 global semiconductor companies around $15 billion and above**. Market caps, local prices, FX, and forward consensus inputs refresh automatically every Sunday at midnight in `America/New_York`; the dashboard and Excel exports read their freshness dates directly from the refreshed data.
+The matrix retains **52 global semiconductor companies at or above Microchip Technology** in the current descending market-cap snapshot. Microchip is the inclusive cutoff at $39.60 billion as of September 1, 2026. Market caps, local prices, FX, and forward consensus inputs refresh automatically every Sunday at midnight in `America/New_York`; the dashboard and Excel exports read their freshness dates directly from the refreshed data.
 
 ## Universe definition
 
@@ -24,7 +24,7 @@ Included businesses cover:
 
 `core` means the company is principally a semiconductor or semiconductor-production business. `extended` means the company is diversified but has a large and strategically important semiconductor-enabling business. General electronics assembly, servers, passive components, and industrial suppliers with only incidental semiconductor exposure are excluded.
 
-`included` rows currently clear the $15B screen. `watchlist` rows sit below it and remain in the 104-company matrix so ordinary price or FX movements do not remove a useful peer.
+Every retained row is `included`. The current universe is fixed to companies at or above Microchip's $39.60 billion market cap in the September 1, 2026 snapshot.
 
 ## Files
 
@@ -96,7 +96,7 @@ Text and date values are also supported with `--type text` and `--type date`.
 2. Keep `market_cap_as_of` in ISO `YYYY-MM-DD` format.
 3. Use `Standard (Dec 31)` or `Non-standard (...)` in `Fiscal Year`.
 4. Ensure `Ticker` matches a primary or alternate listing stored for that company.
-5. Set `universe_status` to `included` only when `market_cap_usd_bn` is above `15.0`.
+5. Set `universe_status` to `included` only when `market_cap_usd_bn` is at or above `39.60`.
 6. Refresh `data/fx_rates.csv` for each valuation date and reporting currency.
 7. Add only issuer-published, underlying-share USD values to `data/usd_per_share_overrides.csv`.
 8. Add researched forecast gaps to `data/supplemental_fiscal_forecasts.csv`; supplements fill blanks unless a field is explicitly named in `override_fields`.
@@ -104,10 +104,10 @@ Text and date values are also supported with `--type text` and `--type date`.
 10. Run `python scripts/build_database.py`.
 11. Commit the CSV changes and regenerated SQLite file.
 
-The build fails on duplicate companies, duplicate ticker aliases, invalid dates, unknown foreign keys, malformed datapoints, or an included company at or below the threshold.
+The build fails on duplicate companies, duplicate ticker aliases, invalid dates, unknown foreign keys, malformed datapoints, or an included company below the threshold.
 
 ## Weekly refresh
 
-GitHub Actions runs the updater at `00:00` every Sunday in `America/New_York`. The job validates all 104 quote pages before replacing any source file, recalculates CY2027/CY2028 values, rebuilds SQLite, runs smoke tests, and commits a successful snapshot. A source or parser failure leaves the last valid dataset unchanged and fails the Action visibly. The same workflow can be run manually from the repository's Actions page.
+GitHub Actions runs the updater at `00:00` every Sunday in `America/New_York`. The job validates all 52 quote pages before replacing any source file, recalculates CY2027/CY2028 values, rebuilds SQLite, runs smoke tests, and commits a successful snapshot. A source or parser failure leaves the last valid dataset unchanged and fails the Action visibly. The same workflow can be run manually from the repository's Actions page.
 
 The weekly primary refresh is merged with `data/supplemental_fiscal_forecasts.csv` during calendarization. A newly available primary value takes precedence unless a supplement carries a deliberate field-level override, so researched fills persist without replacing broader consensus unnecessarily.

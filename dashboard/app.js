@@ -37,13 +37,10 @@ const COMPARE_METRICS = [
   { key: "leverage", label: "Net leverage", chart: "leverage", unit: "net debt / EBITDA" },
 ];
 const MATRIX_METRICS = [
-  { key: "eps", usdKey: "eps_usd", label: "EPS", perShare: true },
-  { key: "fcf", usdKey: "fcf_usd", label: "FCF / share", perShare: true },
   { key: "pe", label: "P / E", unit: "multiple" },
   { key: "ev_fcf", label: "EV / FCF", unit: "multiple" },
   { key: "leverage", label: "Net leverage", unit: "net debt / EBITDA" },
 ];
-const MATRIX_METRIC_KEYS = MATRIX_METRICS.map((metric) => metric.key);
 
 const state = {
   companies: [],
@@ -51,9 +48,6 @@ const state = {
   activeView: "matrix",
   query: "",
   category: "all",
-  perShareUnit: "usd",
-  yearView: "both",
-  visibleMetrics: [...MATRIX_METRIC_KEYS],
   sortKey: "market_cap_usd_bn",
   sortDirection: "desc",
   optionIndex: -1,
@@ -76,10 +70,6 @@ function cacheElements() {
     "marketCapAsOf",
     "matrixSearch",
     "categoryFilter",
-    "yearToggle",
-    "currencyToggle",
-    "metricSelector",
-    "metricSelectionCount",
     "matrixResultCount",
     "matrixTable",
     "matrixColgroup",
@@ -119,21 +109,6 @@ function bindEvents() {
   elements.categoryFilter.addEventListener("change", (event) => {
     state.category = event.target.value;
     renderMatrix();
-  });
-
-  elements.currencyToggle.addEventListener("click", (event) => {
-    const button = event.target.closest("[data-per-share-unit]");
-    if (button) setPerShareUnit(button.dataset.perShareUnit);
-  });
-
-  elements.yearToggle.addEventListener("click", (event) => {
-    const button = event.target.closest("[data-year-view]");
-    if (button) setYearView(button.dataset.yearView);
-  });
-
-  elements.metricSelector.addEventListener("change", (event) => {
-    const input = event.target.closest("[data-metric-toggle]");
-    if (input) setMetricVisibility(input.dataset.metricToggle, input.checked);
   });
 
   elements.matrixHead.addEventListener("click", (event) => {
@@ -194,7 +169,6 @@ async function initialize() {
     );
 
     state.companies = universeRows.map((row) => normalizeCompany(row, calendarizedMap));
-    hydrateMatrixPreferences();
     hydrateSelectionFromUrl();
     populateCategories();
     renderSummary();
@@ -340,7 +314,6 @@ function getLatestForecastDate() {
 
 function renderMatrix() {
   if (!state.companies.length) return;
-  syncMatrixControls();
   const years = getVisibleYears();
   const metrics = getVisibleMatrixMetrics();
   renderMatrixStructure(years, metrics);
@@ -390,9 +363,8 @@ function renderMatrixStructure(years, metrics) {
   )).join("");
   const metricHeaders = years.flatMap((year) => metrics.map((metric) => {
     const tableLabel = metricTableLabel(metric.baseKey);
-    const unit = metric.perShare ? `<small>${state.perShareUnit === "usd" ? "USD" : "local"}</small>` : "";
     const sortLabel = `CY${year} ${metric.label}`;
-    return `<th scope="col"><button class="sort-button" type="button" data-sort="cy${year}_${metric.key}" data-sort-label="${escapeHtml(sortLabel)}">${escapeHtml(tableLabel)}${unit}</button></th>`;
+    return `<th scope="col"><button class="sort-button" type="button" data-sort="cy${year}_${metric.key}" data-sort-label="${escapeHtml(sortLabel)}">${escapeHtml(tableLabel)}</button></th>`;
   })).join("");
 
   elements.matrixHead.innerHTML = `
@@ -427,126 +399,19 @@ function syncSortControls() {
   });
 }
 
-function hydrateMatrixPreferences() {
-  try {
-    const savedUnit = window.localStorage.getItem("rvm-per-share-unit");
-    const savedYear = window.localStorage.getItem("rvm-year-view");
-    const savedMetrics = JSON.parse(window.localStorage.getItem("rvm-visible-metrics") || "null");
-    if (savedUnit === "usd" || savedUnit === "local") state.perShareUnit = savedUnit;
-    if (savedYear === "2027" || savedYear === "2028" || savedYear === "both") state.yearView = savedYear;
-    if (Array.isArray(savedMetrics)) {
-      const validMetrics = MATRIX_METRIC_KEYS.filter((key) => savedMetrics.includes(key));
-      if (validMetrics.length) state.visibleMetrics = validMetrics;
-    }
-  } catch {
-    state.perShareUnit = "usd";
-    state.yearView = "both";
-    state.visibleMetrics = [...MATRIX_METRIC_KEYS];
-  }
-}
-
-function setPerShareUnit(unit) {
-  if ((unit !== "usd" && unit !== "local") || state.perShareUnit === unit) return;
-  state.perShareUnit = unit;
-  const perShareSort = state.sortKey.match(/^cy(2027|2028)_(eps|fcf)(?:_usd)?$/);
-  if (perShareSort) {
-    const [, year, metric] = perShareSort;
-    state.sortKey = `cy${year}_${metric}${unit === "usd" ? "_usd" : ""}`;
-  }
-  persistMatrixPreferences();
-  renderMatrix();
-}
-
-function setYearView(yearView) {
-  if ((yearView !== "2027" && yearView !== "2028" && yearView !== "both") || state.yearView === yearView) return;
-  state.yearView = yearView;
-  resetHiddenSort();
-  persistMatrixPreferences();
-  renderMatrix();
-}
-
-function setMetricVisibility(metricKey, visible) {
-  if (!MATRIX_METRIC_KEYS.includes(metricKey)) return;
-  const selected = new Set(state.visibleMetrics);
-  if (visible) selected.add(metricKey);
-  else if (selected.size > 1) selected.delete(metricKey);
-  state.visibleMetrics = MATRIX_METRIC_KEYS.filter((key) => selected.has(key));
-  resetHiddenSort();
-  persistMatrixPreferences();
-  renderMatrix();
-}
-
-function persistMatrixPreferences() {
-  try {
-    window.localStorage.setItem("rvm-per-share-unit", state.perShareUnit);
-    window.localStorage.setItem("rvm-year-view", state.yearView);
-    window.localStorage.setItem("rvm-visible-metrics", JSON.stringify(state.visibleMetrics));
-  } catch {
-    // Matrix controls remain usable when storage is unavailable.
-  }
-}
-
-function resetHiddenSort() {
-  const metricSort = state.sortKey.match(/^cy(2027|2028)_(eps|fcf|pe|ev_fcf|leverage)(?:_usd)?$/);
-  if (!metricSort) return;
-  const [, year, metric] = metricSort;
-  if (!getVisibleYears().includes(Number(year)) || !state.visibleMetrics.includes(metric)) {
-    state.sortKey = "market_cap_usd_bn";
-    state.sortDirection = "desc";
-  }
-}
-
-function syncMatrixControls() {
-  document.querySelectorAll("[data-year-view]").forEach((button) => {
-    const active = button.dataset.yearView === state.yearView;
-    button.classList.toggle("is-active", active);
-    button.setAttribute("aria-pressed", String(active));
-  });
-
-  const oneMetricSelected = state.visibleMetrics.length === 1;
-  document.querySelectorAll("[data-metric-toggle]").forEach((input) => {
-    const checked = state.visibleMetrics.includes(input.dataset.metricToggle);
-    input.checked = checked;
-    input.disabled = checked && oneMetricSelected;
-    input.closest(".metric-choice")?.classList.toggle("is-required", input.disabled);
-    input.closest(".metric-choice")?.setAttribute("title", input.disabled ? "At least one metric must remain selected" : "");
-  });
-  elements.metricSelectionCount.textContent = `${state.visibleMetrics.length} selected`;
-
-  const perShareVisible = state.visibleMetrics.includes("eps") || state.visibleMetrics.includes("fcf");
-  elements.currencyToggle.closest(".unit-toggle-field")?.classList.toggle("is-disabled", !perShareVisible);
-  document.querySelectorAll("[data-per-share-unit]").forEach((button) => {
-    const active = button.dataset.perShareUnit === state.perShareUnit;
-    button.classList.toggle("is-active", active);
-    button.setAttribute("aria-pressed", String(active));
-    button.disabled = !perShareVisible;
-    button.title = perShareVisible ? "" : "Available when EPS or FCF/share is selected";
-  });
-}
-
 function getVisibleYears() {
-  if (state.yearView === "2027") return [2027];
-  if (state.yearView === "2028") return [2028];
   return [2027, 2028];
 }
 
 function getVisibleMatrixMetrics() {
-  return MATRIX_METRICS
-    .filter((metric) => state.visibleMetrics.includes(metric.key))
-    .map((metric) => ({
-      ...metric,
-      baseKey: metric.key,
-      key: metric.perShare && state.perShareUnit === "usd" ? metric.usdKey : metric.key,
-    }));
+  return MATRIX_METRICS.map((metric) => ({ ...metric, baseKey: metric.key }));
 }
 
 function metricTableLabel(metricKey) {
   return {
-    eps: "EPS",
-    fcf: "FCF/share",
     pe: "P/E",
     ev_fcf: "EV/FCF",
-    leverage: "Net lev.",
+    leverage: "Net leverage",
   }[metricKey];
 }
 
@@ -616,15 +481,9 @@ function metricCell(company, year, metric) {
   const value = company[`cy${year}_${metric.key}`];
   const quality = company[`quality${year}`];
   const titleParts = [`${metric.label}: ${value === null ? INSUFFICIENT_DATA : formatFull(value, metric.key)}`];
-  const isUsdPerShare = metric.key === "eps_usd" || metric.key === "fcf_usd";
-  const isLocalPerShare = metric.key === "eps" || metric.key === "fcf";
-  if (isUsdPerShare) titleParts.push("USD per underlying ordinary share");
-  if (isLocalPerShare) titleParts.push(`${company.reporting_currency} per underlying ordinary share`);
   titleParts.push(`Quality: ${quality}`);
   const marker = quality === "flat-tail" ? '<i class="quality-marker" aria-label="Flat-tail estimate"></i>' : "";
-  const perShareUnit = isUsdPerShare ? "USD" : isLocalPerShare ? company.reporting_currency : "";
-  const unit = value !== null && perShareUnit ? `<small class="cell-unit">${escapeHtml(perShareUnit)}</small>` : "";
-  return `<td data-year="${year}" data-metric="${escapeHtml(metric.baseKey)}" title="${escapeHtml(titleParts.join(" | "))}">${value === null ? `<span class="metric-missing">${INSUFFICIENT_DATA}</span>` : `<span class="metric-value">${formatMetric(value, metric.key)}${marker}</span>${unit}`}</td>`;
+  return `<td data-year="${year}" data-metric="${escapeHtml(metric.baseKey)}" title="${escapeHtml(titleParts.join(" | "))}">${value === null ? `<span class="metric-missing">${INSUFFICIENT_DATA}</span>` : `<span class="metric-value">${formatMetric(value, metric.key)}${marker}</span>`}</td>`;
 }
 
 function setView(view, updateHash = true) {
@@ -1100,7 +959,6 @@ async function exportMatrixView(companies) {
       })),
     ];
     const metricNames = metrics.map((metric) => metric.label).join(", ");
-    const unitLabel = state.perShareUnit === "usd" ? "USD per share" : "reporting currency per share";
     const filterParts = [
       state.category === "all" ? "All businesses" : state.category,
       state.query ? `Search: ${state.query}` : null,
@@ -1108,12 +966,12 @@ async function exportMatrixView(companies) {
     addProfessionalSheet(workbook, {
       name: "Valuation Matrix",
       title: "Relative Valuation Matrix",
-      context: `${companies.length} companies | ${years.map((year) => `CY${year}`).join(" + ")} | ${metricNames} | ${unitLabel} | ${filterParts.join(" | ")} | Estimates as of ${formatDate(getLatestForecastDate())} | Market capitalizations as of ${formatDate(latestMarketCapDate(companies))}`,
+      context: `${companies.length} companies | ${years.map((year) => `CY${year}`).join(" + ")} | ${metricNames} | ${filterParts.join(" | ")} | Estimates as of ${formatDate(getLatestForecastDate())} | Market capitalizations as of ${formatDate(latestMarketCapDate(companies))}`,
       columns,
       groups,
       rows: companies.map((company) => ({ values: rowValues(company, columns) })),
       freezeColumns: 2,
-      tabColor: years.length === 1 && years[0] === 2027 ? EXCEL_COLORS.blue2027 : EXCEL_COLORS.blue2028,
+      tabColor: EXCEL_COLORS.blue2028,
     });
 
     return {
@@ -1147,8 +1005,6 @@ function getExportIdentityColumns() {
 }
 
 function matrixExportHeader(metric) {
-  if (metric.baseKey === "eps") return state.perShareUnit === "usd" ? "EPS (USD/share)" : "EPS (local/share)";
-  if (metric.baseKey === "fcf") return state.perShareUnit === "usd" ? "FCF/share (USD)" : "FCF/share (local)";
   return {
     pe: "P/E",
     ev_fcf: "EV/FCF",
@@ -1157,8 +1013,6 @@ function matrixExportHeader(metric) {
 }
 
 function exportNumberFormat(metric) {
-  if (metric.perShare && state.perShareUnit === "usd") return "$#,##0.00;[Red]($#,##0.00);-";
-  if (metric.perShare) return "#,##0.00;[Red](#,##0.00);-";
   return "0.00x;[Red](0.00x);-";
 }
 

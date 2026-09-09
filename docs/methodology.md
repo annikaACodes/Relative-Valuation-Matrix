@@ -2,7 +2,7 @@
 
 ## Scope and source date
 
-The dataset covers CY2027 and CY2028 for the 104-company semiconductor universe. Its current source dates are stored on every raw forecast, valuation, FX, and market-cap row and are displayed automatically in the dashboard and Excel exports. A GitHub Actions workflow refreshes the complete snapshot every Sunday at midnight in `America/New_York`. MarketScreener is the primary fiscal-year consensus feed. Where it has a genuine gap, `data/supplemental_fiscal_forecasts.csv` retains sourced values from public pages that identify FactSet as their data provider, local analyst-consensus portals, issuer filings, and selected forecast tables in publicly hosted broker research PDFs. Historical values and fiscal calendars were checked against company filings, including SEC 10-K filings for U.S. issuers. The three exact FCF checks in `data/sec_historical_checks.csv` reconcile without a difference.
+The dataset covers CY2027 and CY2028 for 52 semiconductor companies, retained in descending market-cap order through Microchip Technology. Microchip is the inclusive cutoff at $39.60 billion in the September 1, 2026 snapshot. Current source dates are stored on every raw forecast, valuation, FX, and market-cap row and are displayed automatically in the dashboard and Excel exports. A GitHub Actions workflow refreshes the complete snapshot every Sunday at midnight in `America/New_York`. MarketScreener is the primary fiscal-year consensus feed. Where it has a genuine gap, `data/supplemental_fiscal_forecasts.csv` retains sourced values from public pages that identify FactSet as their data provider, local analyst-consensus portals, issuer filings, and selected forecast tables in publicly hosted broker research PDFs. Historical values and fiscal calendars were checked against company filings, including SEC 10-K filings for U.S. issuers. The three exact FCF checks in `data/sec_historical_checks.csv` reconcile without a difference.
 
 SEC filings do not contain 2027-2029 consensus estimates, so filings are historical and calendar anchors rather than the source of forward estimates. Local share prices are dated in `data/valuation_inputs.csv`.
 
@@ -12,9 +12,9 @@ USD per-share display values use the same weekly snapshot as the valuation input
 
 Forward fiscal estimates primarily come from MarketScreener analyst pages, with a source URL retained on every raw row, including NVIDIA and TSMC. SEC filings provide historical and accounting-basis checks because they do not contain future consensus estimates. The researched gap-fill layer uses estimates displayed on public Finanzen pages that identify FactSet as their provider, analyst estimates displayed by 10jqka, and selected forecast tables from publicly hosted broker research PDFs. No direct FactSet terminal or paid feed was accessed, and no private broker portal or proprietary broker database was used. Each supplemental row retains its source URL, retrieval date, method note, and any field deliberately overriding the primary source.
 
-These supplemental sources apply only to specific cells where the primary feed has a genuine gap; they are not the source for most of the matrix. The September 8 gap-fill pass added 30 supplemental fiscal-year rows alongside 511 primary forecast rows, and only the missing fields identified on each supplemental row are merged. MarketScreener remains the primary source for the broad dataset. Public pages attributing estimates to FactSet, 10jqka, publicly hosted broker research PDFs, issuer filings, and official share-count disclosures are used selectively to recover otherwise unavailable EPS, cash-flow, EBITDA, net-debt, or share inputs. ECB and other dated reference rates are conversion inputs rather than forecast sources.
+These supplemental sources apply only to specific cells where the primary feed has a genuine gap; they are not the source for most of the matrix. The retained universe has 5 supplemental fiscal-year rows alongside 269 primary forecast rows, and only the missing fields identified on each supplemental row are merged. MarketScreener remains the primary source for the broad dataset. Public pages attributing estimates to FactSet, 10jqka, publicly hosted broker research PDFs, issuer filings, and official share-count disclosures are used selectively to recover otherwise unavailable EPS, cash-flow, EBITDA, net-debt, or share inputs. ECB and other dated reference rates are conversion inputs rather than forecast sources.
 
-When even those targeted sources do not publish a defensible forward component, the affected output remains `Insufficient Data`. For example, the reviewed sources still omit Cambricon's 2028 FCF and Winbond's 2028 net debt. Ratios are also intentionally left blank when their denominator is negative and the result would not be economically meaningful. Current balance-sheet figures are not substituted for missing forward net debt, and unrelated per-share measures are not used as proxies for FCF/share.
+When even those targeted sources do not publish a defensible forward component, the affected output remains `Insufficient Data`. For example, the reviewed sources still omit Cambricon's 2028 FCF and CXMT's 2028 net debt. Ratios are also intentionally left blank when their denominator is negative and the result would not be economically meaningful. Current balance-sheet figures are not substituted for missing forward net debt, and unrelated per-share measures are not used as proxies for FCF/share.
 
 The code determines actual fiscal year-end dates and day-weights adjacent fiscal years. Earnings, FCF, EBITDA, debt, and shares are calendarized as totals; EPS and FCF/share are calculated only afterward. Currency conversion is applied after local per-share values are calculated.
 
@@ -49,21 +49,20 @@ If FY(Y+1) is missing and the uncovered part of the calendar year is no more tha
 
 ## Current audit coverage
 
-- All 208 CY2027/CY2028 rows have EPS in local currency and USD.
-- 203 of 208 rows have FCF/share in local currency and USD.
-- Across the seven stored display fields, 1,408 of 1,456 cells are populated (96.70%).
-- CY2027 has 497 of 520 core metric cells populated; CY2028 has 500 of 520.
-- 11 calendar-year rows use the limited flat-tail assumption, all in CY2028.
-- The September 8 gap audit recovered 119 of the 167 cells that had previously displayed `Insufficient Data`.
+- All 104 CY2027/CY2028 rows have EPS in local currency and USD.
+- 103 of 104 rows have FCF/share in local currency and USD.
+- Across the seven stored display fields, 717 of 728 cells are populated (98.49%).
+- CY2027 has 255 of 260 core metric cells populated; CY2028 also has 255 of 260.
+- 9 calendar-year rows use the limited flat-tail assumption, all in CY2028.
 - Remaining blanks are either economically undefined valuation ratios with negative earnings or FCF, or fields for which no defensible public forecast was found. Partial rows retain every metric that can be calculated; they are not filled with invented values.
 
-The detailed recovery and residual-gap review is in `docs/gap-fill-audit-2026-09-08.md`.
+The detailed September 8 recovery and residual-gap review is in `docs/gap-fill-audit-2026-09-08.md`. That audit describes the former 104-company universe and is retained as a historical record.
 
 ## Accuracy checks
 
-For calendar-year reporters, fiscal and calendar years are identical. Across 65 available CY2027/CY2028 P/E checks against the published web ratios, the median absolute difference is 0.11%, the 90th percentile is 2.61%, 59 of 65 are within 3%, 63 of 65 are within 5%, and the maximum is 8.43%. The residual differences reflect intraday/delayed quote timing and rounding. The `computed_pe` field in `data/quality_checks.csv` uses the same consensus-EPS basis as the final output. Every result above 3% was manually rechecked; the decisions are recorded in `docs/pe-recheck-2026-09-03.md`.
+For calendar-year reporters, fiscal and calendar years are identical. Across 64 available CY2027/CY2028 P/E checks against the published web ratios, the median absolute difference is 0.28%, the 90th percentile is 2.63%, 58 of 64 are within 3%, 62 of 64 are within 5%, and the maximum is 7.76%. The residual differences reflect intraday/delayed quote timing and rounding. The `computed_pe` field in `data/quality_checks.csv` uses the same consensus-EPS basis as the final output. Every result above 3% was manually rechecked; the decisions are recorded in `docs/pe-recheck-2026-09-03.md`.
 
-Across 481 available fiscal observations, reported net income divided by diluted shares differs from published consensus EPS by a median 1.05% and a 90th percentile of 5.58%. That is primarily the difference between GAAP-style net income and adjusted consensus EPS. The output therefore uses reconstructed consensus earnings; `data/quality_checks.csv` preserves this basis check.
+Across 249 available fiscal observations, reported net income divided by diluted shares differs from published consensus EPS by a median 1.16% and a 90th percentile of 5.58%. That is primarily the difference between GAAP-style net income and adjusted consensus EPS. The output therefore uses reconstructed consensus earnings; `data/quality_checks.csv` preserves this basis check.
 
 For non-calendar reporters, the arithmetic is deterministic and can be traced through the stored weights. For example, NVIDIA CY2027 EPS is 8.4932% of FY2027 EPS plus 91.5068% of FY2028 EPS. Lam Research CY2027 is approximately half FY2027 and half FY2028. No free public source provided a consistent independent CY2027/CY2028 panel for the full global universe, so the strongest external check is the direct calendar-year subset plus SEC historical reconciliation.
 
@@ -71,7 +70,7 @@ These statistics measure calculation and source consistency, not the chance that
 
 ## Updating
 
-The scheduled workflow runs `python scripts/update_market_data.py` first. It requires all 104 quote pages to validate, retries transient failures, accepts explicitly blank consensus cells, and writes no files if a required source fails. Market caps that are not exposed directly are rolled forward using current price and FX; when no prior quote exists, the latest issuer share count is used. The workflow then performs the same two deterministic build steps used for manual updates.
+The scheduled workflow runs `python scripts/update_market_data.py` first. It requires all 52 quote pages to validate, retries transient failures, accepts explicitly blank consensus cells, and writes no files if a required source fails. Market caps that are not exposed directly are rolled forward using current price and FX; when no prior quote exists, the latest issuer share count is used. The workflow then performs the same two deterministic build steps used for manual updates.
 
 1. Run `python scripts/update_market_data.py`.
 2. Add issuer-published USD per-share values to `data/usd_per_share_overrides.csv` only when they use the underlying ordinary-share basis.

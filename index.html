@@ -8,8 +8,8 @@
       content="Calendar-normalized 2027 and 2028 valuation comparisons for the global semiconductor universe."
     />
     <title>Relative Valuation Matrix</title>
-    <link rel="stylesheet" href="dashboard/styles.css?v=20260908-2" />
-    <script defer src="dashboard/app.js?v=20260908-2"></script>
+    <link rel="stylesheet" href="dashboard/styles.css?v=20260909-1" />
+    <script defer src="dashboard/app.js?v=20260909-1"></script>
   </head>
   <body>
     <header class="app-header">
@@ -52,8 +52,8 @@
 
         <div class="summary-strip" aria-label="Universe summary">
           <div class="summary-item">
-            <span>Companies ~$15B and above</span>
-            <strong id="companyCount">104</strong>
+            <span>Companies at/above Microchip</span>
+            <strong id="companyCount">52</strong>
           </div>
           <div class="summary-item summary-item-wide">
             <span>Market-cap snapshot</span>
@@ -75,33 +75,6 @@
             </select>
           </label>
 
-          <div class="year-toggle-field">
-            <span>Calendar year</span>
-            <div class="segmented-control year-toggle" id="yearToggle" role="group" aria-label="Calendar year columns">
-              <button type="button" data-year-view="2027" aria-pressed="false">2027</button>
-              <button type="button" data-year-view="2028" aria-pressed="false">2028</button>
-              <button class="is-active" type="button" data-year-view="both" aria-pressed="true">Both</button>
-            </div>
-          </div>
-
-          <div class="unit-toggle-field">
-            <span>Per-share currency</span>
-            <div class="segmented-control currency-toggle" id="currencyToggle" role="group" aria-label="Per-share currency">
-              <button class="is-active" type="button" data-per-share-unit="usd" aria-pressed="true">USD</button>
-              <button type="button" data-per-share-unit="local" aria-pressed="false">Local</button>
-            </div>
-          </div>
-
-          <div class="metric-selector" id="metricSelector" role="group" aria-labelledby="metricSelectorLabel">
-            <span class="metric-selector-label" id="metricSelectorLabel">Metrics <small id="metricSelectionCount">5 selected</small></span>
-            <div class="metric-options">
-              <label class="metric-choice"><input type="checkbox" data-metric-toggle="eps" checked /><span>EPS</span></label>
-              <label class="metric-choice"><input type="checkbox" data-metric-toggle="fcf" checked /><span>FCF/share</span></label>
-              <label class="metric-choice"><input type="checkbox" data-metric-toggle="pe" checked /><span>P/E</span></label>
-              <label class="metric-choice"><input type="checkbox" data-metric-toggle="ev_fcf" checked /><span>EV/FCF</span></label>
-              <label class="metric-choice"><input type="checkbox" data-metric-toggle="leverage" checked /><span>Net leverage</span></label>
-            </div>
-          </div>
         </div>
 
         <div class="table-meta">

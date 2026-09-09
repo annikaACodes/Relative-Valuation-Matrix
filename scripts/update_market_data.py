@@ -37,7 +37,8 @@ VALUATION_PATH = DATA_DIR / "valuation_inputs.csv"
 FX_PATH = DATA_DIR / "fx_rates.csv"
 UPDATE_STATUS_PATH = DATA_DIR / "update_status.json"
 
-MARKET_CAP_THRESHOLD_USD_BN = Decimal("15")
+MARKET_CAP_THRESHOLD_USD_BN = Decimal("39.60")
+EXPECTED_UNIVERSE_SIZE = 52
 TARGET_CALENDAR_YEARS = {2027, 2028}
 MIN_FISCAL_YEAR = 2024
 MAX_FISCAL_YEAR = 2030
@@ -827,7 +828,7 @@ def build_outputs(
         updated_company["market_cap_as_of"] = as_of
         updated_company["universe_status"] = (
             "included"
-            if Decimal(market_cap_usd_bn) > MARKET_CAP_THRESHOLD_USD_BN
+            if Decimal(market_cap_usd_bn) >= MARKET_CAP_THRESHOLD_USD_BN
             else "watchlist"
         )
         updated_universe.append(updated_company)
@@ -932,8 +933,10 @@ def main() -> int:
     valuations, valuation_columns = read_csv(VALUATION_PATH)
     prior_forecasts, _ = read_csv(FORECAST_PATH)
     prior_fx_rows, _ = read_csv(FX_PATH)
-    if len(universe) != 104 or len(valuations) != 104:
-        raise UpdateError("The updater expects exactly 104 universe and valuation rows")
+    if len(universe) != EXPECTED_UNIVERSE_SIZE or len(valuations) != EXPECTED_UNIVERSE_SIZE:
+        raise UpdateError(
+            f"The updater expects exactly {EXPECTED_UNIVERSE_SIZE} universe and valuation rows"
+        )
 
     valuations_by_id = {row["company_id"]: row for row in valuations}
     forecasts_by_id: dict[str, list[dict[str, str]]] = {}
