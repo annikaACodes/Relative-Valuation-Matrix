@@ -11,8 +11,7 @@ const COMPARE_EMPTY = "&mdash;";
 const DEFAULT_SELECTION = ["nvidia", "tsmc", "broadcom"];
 const EXCEL_MIME = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 const EXCELJS_SOURCES = [
-  "https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js",
-  "https://unpkg.com/exceljs@4.4.0/dist/exceljs.min.js",
+  "dashboard/vendor/exceljs.min.js",
 ];
 const EXCEL_COLORS = {
   navy: "FF17324D",

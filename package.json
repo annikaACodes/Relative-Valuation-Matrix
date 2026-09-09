@@ -1,0 +1,11 @@
+{
+  "name": "relative-valuation-matrix",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build:cloudflare": "node scripts/build-cloudflare.mjs",
+    "check:cloudflare": "node scripts/build-cloudflare.mjs && node scripts/check-cloudflare-build.mjs && node --test cloudflare/tests/*.test.mjs",
+    "generate-auth-secrets": "node scripts/generate-auth-secrets.mjs",
+    "test:auth": "node --test cloudflare/tests/*.test.mjs"
+  }
+}

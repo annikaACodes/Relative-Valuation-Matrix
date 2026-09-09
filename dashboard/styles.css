@@ -709,6 +709,12 @@ a {
   text-align: left;
 }
 
+.matrix-table .segment-column,
+.matrix-table td:nth-child(3),
+.matrix-table .segment-text {
+  text-align: left;
+}
+
 .matrix-table td:nth-child(1) {
   padding-right: 4px;
   padding-left: 4px;
@@ -883,7 +889,6 @@ a {
   overflow: hidden;
   color: var(--muted);
   line-height: 1.18;
-  text-align: center;
   white-space: nowrap;
 }
 
