@@ -644,7 +644,7 @@ a {
 }
 
 .matrix-table .company-col {
-  width: 23.2%;
+  width: 20.5%;
 }
 
 .matrix-table .market-cap-col {
@@ -652,11 +652,11 @@ a {
 }
 
 .matrix-table .business-col {
-  width: 12.4%;
+  width: 19.5%;
 }
 
 .matrix-table .metric-col {
-  width: 8.7667%;
+  width: 8.0333%;
 }
 
 .matrix-table .action-col {
@@ -879,14 +879,12 @@ a {
 }
 
 .segment-text {
-  display: -webkit-box;
+  display: block;
   overflow: hidden;
   color: var(--muted);
   line-height: 1.18;
   text-align: center;
-  white-space: normal;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  white-space: nowrap;
 }
 
 .metric-value {

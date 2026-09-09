@@ -56,6 +56,7 @@ const state = {
 
 const elements = {};
 let excelJsPromise = null;
+let businessFitFrame = null;
 
 document.addEventListener("DOMContentLoaded", () => {
   cacheElements();
@@ -153,6 +154,8 @@ function bindEvents() {
     const view = window.location.hash.replace("#", "");
     if (view === "matrix" || view === "compare") setView(view, false);
   });
+
+  window.addEventListener("resize", scheduleBusinessLabelFit);
 }
 
 async function initialize() {
@@ -335,15 +338,16 @@ function renderMatrix() {
     : `<tr class="empty-row"><td colspan="${columnCount}">No companies match the current filters.</td></tr>`;
 
   syncSortControls();
+  scheduleBusinessLabelFit();
 }
 
 function renderMatrixStructure(years, metrics) {
   const metricColumnCount = years.length * metrics.length;
   const actionArea = 3.4;
   const widths = {
-    company: 23.2,
+    company: 20.5,
     marketCap: 8.4,
-    business: 12.4,
+    business: 19.5,
   };
   widths.metric = (100 - actionArea - widths.company - widths.marketCap - widths.business) / metricColumnCount;
   const metricType = widths.metric >= 20
@@ -384,6 +388,24 @@ function renderMatrixStructure(years, metrics) {
       <th class="compare-column" rowspan="2" scope="col"><span class="sr-only">Add to comparison</span></th>
     </tr>
     <tr class="metric-headers">${metricHeaders}</tr>`;
+}
+
+function scheduleBusinessLabelFit() {
+  cancelAnimationFrame(businessFitFrame);
+  businessFitFrame = requestAnimationFrame(fitBusinessLabels);
+}
+
+function fitBusinessLabels() {
+  elements.matrixBody.querySelectorAll(".segment-text").forEach((label) => {
+    label.style.fontSize = "";
+    const availableWidth = label.clientWidth;
+    const requiredWidth = label.scrollWidth;
+    if (!availableWidth || requiredWidth <= availableWidth) return;
+
+    const baseSize = Number.parseFloat(getComputedStyle(label).fontSize);
+    const fittedSize = Math.max(9, baseSize * ((availableWidth - 2) / requiredWidth));
+    label.style.fontSize = `${fittedSize.toFixed(2)}px`;
+  });
 }
 
 function syncSortControls() {
