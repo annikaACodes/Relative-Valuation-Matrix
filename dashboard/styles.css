@@ -221,7 +221,7 @@ a {
   width: min(100%, 1880px);
   min-height: calc(100vh - 114px);
   margin: 0 auto;
-  padding: 28px;
+  padding: 22px 28px;
 }
 
 .view[hidden],
@@ -234,7 +234,7 @@ a {
   align-items: flex-end;
   justify-content: space-between;
   gap: 20px;
-  margin-bottom: 22px;
+  margin-bottom: 16px;
 }
 
 .page-heading h1 {
@@ -296,7 +296,7 @@ a {
 .summary-strip {
   display: grid;
   grid-template-columns: minmax(220px, 1fr) minmax(220px, 1fr);
-  margin-bottom: 16px;
+  margin-bottom: 12px;
   overflow: hidden;
   background: var(--surface);
   border: 1px solid var(--line);
@@ -306,10 +306,10 @@ a {
 
 .summary-item {
   display: flex;
-  min-height: 78px;
+  min-height: 66px;
   flex-direction: column;
   justify-content: center;
-  padding: 14px 18px;
+  padding: 10px 18px;
   border-right: 1px solid var(--line);
 }
 
@@ -350,8 +350,8 @@ a {
   display: grid;
   align-items: end;
   gap: 10px;
-  margin-bottom: 13px;
-  padding: 12px;
+  margin-bottom: 9px;
+  padding: 10px;
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -562,7 +562,7 @@ a {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  min-height: 32px;
+  min-height: 28px;
   color: var(--muted);
   font-size: 0.75rem;
 }
@@ -611,7 +611,7 @@ a {
 .table-shell {
   position: relative;
   min-height: 360px;
-  max-height: calc(100vh - 344px);
+  max-height: calc(100vh - 320px);
   overflow-x: hidden;
   overflow-y: auto;
   background: var(--surface);
@@ -634,39 +634,40 @@ a {
 
 .matrix-table th,
 .matrix-table td {
-  height: 58px;
-  padding: 8px 7px;
+  height: 50px;
+  padding: 5px 6px;
   border-right: 1px solid #e9eef3;
   border-bottom: 1px solid #e7edf3;
-  text-align: right;
+  text-align: center;
+  vertical-align: middle;
   white-space: nowrap;
 }
 
 .matrix-table .company-col {
-  width: 17.216%;
+  width: 23.2%;
 }
 
 .matrix-table .market-cap-col {
-  width: 8%;
+  width: 8.4%;
 }
 
 .matrix-table .business-col {
-  width: 9.684%;
+  width: 12.4%;
 }
 
 .matrix-table .metric-col {
-  width: 6.16%;
+  width: 8.7667%;
 }
 
 .matrix-table .action-col {
-  width: 3.5%;
+  width: 3.4%;
 }
 
 .matrix-table th {
   position: sticky;
   top: 0;
   z-index: 4;
-  height: 36px;
+  height: 34px;
   color: var(--navy-800);
   background: #f2f6fa;
   font-size: 0.8rem;
@@ -679,9 +680,9 @@ a {
 }
 
 .matrix-table .metric-headers th {
-  top: 36px;
+  top: 34px;
   background: #f7f9fc;
-  text-align: right;
+  text-align: center;
 }
 
 .matrix-table .metric-headers .sort-button {
@@ -704,9 +705,7 @@ a {
 }
 
 .matrix-table .company-column,
-.matrix-table td:nth-child(1),
-.matrix-table .segment-column,
-.matrix-table td:nth-child(3) {
+.matrix-table td:nth-child(1) {
   text-align: left;
 }
 
@@ -837,7 +836,7 @@ a {
   display: flex;
   min-width: 0;
   align-items: center;
-  gap: 4px;
+  gap: 7px;
 }
 
 .company-name-wrap {
@@ -845,46 +844,55 @@ a {
 }
 
 .company-name {
-  display: block;
+  display: -webkit-box;
+  overflow: hidden;
   color: var(--ink);
   font-weight: 750;
+  line-height: 1.14;
   white-space: normal;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .company-country {
   display: block;
-  margin-top: 2px;
+  margin-top: 1px;
   color: var(--faint);
-  font-size: 0.65rem;
+  font-size: 0.61rem;
+  line-height: 1.1;
 }
 
 .company-ticker {
   display: inline-block;
-  min-width: 78px;
+  min-width: 70px;
   flex: 0 0 auto;
-  padding: 5px 8px;
+  padding: 4px 6px;
   color: #ffffff;
   background: var(--year-2027);
   border: 1px solid #1d3f60;
   border-radius: 4px;
   box-shadow: inset 3px 0 #72bec8;
-  font-size: 0.68rem;
+  font-size: 0.66rem;
   font-weight: 800;
   text-align: center;
   white-space: nowrap;
 }
 
 .segment-text {
-  display: block;
+  display: -webkit-box;
+  overflow: hidden;
   color: var(--muted);
-  line-height: 1.3;
+  line-height: 1.18;
+  text-align: center;
   white-space: normal;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .metric-value {
   display: block;
   color: var(--ink);
-  font-weight: 650;
+  font-weight: 700;
 }
 
 .cell-unit {
@@ -923,8 +931,8 @@ a {
 }
 
 .row-compare-button {
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   color: var(--blue-700);
   background: #ffffff;
   border: 1px solid var(--line-strong);

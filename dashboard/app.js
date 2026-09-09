@@ -66,6 +66,7 @@ document.addEventListener("DOMContentLoaded", () => {
 function cacheElements() {
   const ids = [
     "headerAsOf",
+    "universeFloorLabel",
     "companyCount",
     "marketCapAsOf",
     "matrixSearch",
@@ -302,7 +303,14 @@ function populateCategories() {
 function renderSummary() {
   const dates = state.companies.map((company) => company.market_cap_as_of).filter(Boolean).sort();
   const asOf = dates.at(-1);
+  const microchip = state.companies.find((company) => company.id === "microchip");
+  const marketCapFloor = Number.isFinite(microchip?.market_cap_usd_bn)
+    ? Math.floor(microchip.market_cap_usd_bn)
+    : null;
 
+  elements.universeFloorLabel.textContent = marketCapFloor === null
+    ? "Companies by market cap"
+    : `Companies ~$${marketCapFloor}B and above`;
   elements.companyCount.textContent = String(state.companies.length);
   elements.marketCapAsOf.textContent = formatDate(asOf);
   elements.headerAsOf.textContent = `Estimates as of ${formatDate(getLatestForecastDate())}`;
@@ -331,13 +339,13 @@ function renderMatrix() {
 
 function renderMatrixStructure(years, metrics) {
   const metricColumnCount = years.length * metrics.length;
-  const actionArea = 3.5;
+  const actionArea = 3.4;
   const widths = {
-    company: 17.216,
-    marketCap: 8,
-    business: 9.684,
-    metric: 61.6 / metricColumnCount,
+    company: 23.2,
+    marketCap: 8.4,
+    business: 12.4,
   };
+  widths.metric = (100 - actionArea - widths.company - widths.marketCap - widths.business) / metricColumnCount;
   const metricType = widths.metric >= 20
     ? { cell: "0.96rem", header: "0.88rem", year: "0.92rem" }
     : widths.metric >= 12
