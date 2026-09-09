@@ -874,11 +874,11 @@ async function exportComparisonWorkbook(companies) {
       median: true,
     })));
     const changeColumns = [
-      { header: "EPS growth (reported currency)", width: 25, numberFormat: "+0.0%;[Red]-0.0%;-", value: (company) => percentageDecimal(growth(company.cy2027_eps, company.cy2028_eps)), median: true },
-      { header: "FCF/share growth (reported currency)", width: 28, numberFormat: "+0.0%;[Red]-0.0%;-", value: (company) => percentageDecimal(growth(company.cy2027_fcf, company.cy2028_fcf)), median: true },
-      { header: "P/E change", width: 15, numberFormat: "+0.0%;[Red]-0.0%;-", value: (company) => percentageDecimal(percentChange(company.cy2027_pe, company.cy2028_pe)), median: true },
-      { header: "EV/FCF change", width: 17, numberFormat: "+0.0%;[Red]-0.0%;-", value: (company) => percentageDecimal(percentChange(company.cy2027_ev_fcf, company.cy2028_ev_fcf)), median: true },
-      { header: "Net leverage change", width: 20, numberFormat: "+0.00x;[Red]-0.00x;-", value: (company) => difference(company.cy2027_leverage, company.cy2028_leverage), median: true },
+      { header: "EPS growth (reported currency)", width: 25, numberFormat: "+0.0%;[Red](0.0%);-", value: (company) => percentageDecimal(growth(company.cy2027_eps, company.cy2028_eps)), median: true },
+      { header: "FCF/share growth (reported currency)", width: 28, numberFormat: "+0.0%;[Red](0.0%);-", value: (company) => percentageDecimal(growth(company.cy2027_fcf, company.cy2028_fcf)), median: true },
+      { header: "P/E change", width: 15, numberFormat: "+0.0%;[Red](0.0%);-", value: (company) => percentageDecimal(percentChange(company.cy2027_pe, company.cy2028_pe)), median: true },
+      { header: "EV/FCF change", width: 17, numberFormat: "+0.0%;[Red](0.0%);-", value: (company) => percentageDecimal(percentChange(company.cy2027_ev_fcf, company.cy2028_ev_fcf)), median: true },
+      { header: "Net leverage change", width: 20, numberFormat: "+0.00x;[Red](0.00x);-", value: (company) => difference(company.cy2027_leverage, company.cy2028_leverage), median: true },
     ];
     const summaryColumns = [...identityColumns, ...yearColumns, ...changeColumns];
     const identitySpan = identityColumns.length;
@@ -1272,8 +1272,8 @@ function formatMetric(value, key) {
   if (!Number.isFinite(value)) return INSUFFICIENT_DATA;
   const absolute = Math.abs(value);
   if (key === "pe" || key === "ev_fcf" || key === "leverage" || key === "multiple") return formatNumber(value, 2);
-  if (absolute >= 100000) return new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 2 }).format(value);
-  if (absolute >= 1000) return new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(value);
+  if (absolute >= 100000) return formatAccountingNumber(value, { notation: "compact", maximumFractionDigits: 2 });
+  if (absolute >= 1000) return formatAccountingNumber(value, { maximumFractionDigits: 0 });
   if (absolute >= 100) return formatNumber(value, 1);
   return formatNumber(value, 2);
 }
@@ -1281,35 +1281,43 @@ function formatMetric(value, key) {
 function formatFull(value, key) {
   if (!Number.isFinite(value)) return INSUFFICIENT_DATA;
   const isPerShare = key === "eps" || key === "fcf" || key === "eps_usd" || key === "fcf_usd";
-  return new Intl.NumberFormat("en-US", { maximumFractionDigits: isPerShare ? 4 : 2 }).format(value);
+  return formatAccountingNumber(value, { maximumFractionDigits: isPerShare ? 4 : 2 });
 }
 
 function formatNumber(value, decimals = 2) {
-  return new Intl.NumberFormat("en-US", { maximumFractionDigits: decimals, minimumFractionDigits: 0 }).format(value);
+  return formatAccountingNumber(value, { maximumFractionDigits: decimals, minimumFractionDigits: 0 });
+}
+
+function formatAccountingNumber(value, options = {}, prefix = "", suffix = "") {
+  const formatted = new Intl.NumberFormat("en-US", options).format(Math.abs(value));
+  const display = `${prefix}${formatted}${suffix}`;
+  return value < 0 ? `(${display})` : display;
 }
 
 function multiple(value) {
-  return Number.isFinite(value) ? `${formatNumber(value, 2)}x` : INSUFFICIENT_DATA;
+  return Number.isFinite(value) ? formatAccountingNumber(value, { maximumFractionDigits: 2 }, "", "x") : INSUFFICIENT_DATA;
 }
 
 function signedMultiple(value) {
   if (!Number.isFinite(value)) return INSUFFICIENT_DATA;
+  if (value < 0) return formatAccountingNumber(value, { maximumFractionDigits: 2 }, "", "x");
   return `${value > 0 ? "+" : ""}${formatNumber(value, 2)}x`;
 }
 
 function percent(value) {
-  return Number.isFinite(value) ? `${formatNumber(value, 1)}%` : INSUFFICIENT_DATA;
+  return Number.isFinite(value) ? formatAccountingNumber(value, { maximumFractionDigits: 1 }, "", "%") : INSUFFICIENT_DATA;
 }
 
 function signedPercent(value) {
   if (!Number.isFinite(value)) return INSUFFICIENT_DATA;
+  if (value < 0) return formatAccountingNumber(value, { maximumFractionDigits: 1 }, "", "%");
   return `${value > 0 ? "+" : ""}${formatNumber(value, 1)}%`;
 }
 
 function formatMarketCap(value) {
   if (!Number.isFinite(value)) return INSUFFICIENT_DATA;
-  if (value >= 1000) return `$${formatNumber(value / 1000, 2)}T`;
-  return `$${formatNumber(value, 1)}B`;
+  if (Math.abs(value) >= 1000) return formatAccountingNumber(value / 1000, { maximumFractionDigits: 2 }, "$", "T");
+  return formatAccountingNumber(value, { maximumFractionDigits: 1 }, "$", "B");
 }
 
 function formatDate(value) {
