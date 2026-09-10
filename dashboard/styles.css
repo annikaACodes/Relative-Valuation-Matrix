@@ -145,9 +145,7 @@ a {
 }
 
 .brand-chart-endpoint {
-  fill: var(--blue-700);
-  stroke: #fff;
-  stroke-width: 0.8;
+  fill: currentColor;
 }
 
 .brand-copy {
