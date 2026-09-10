@@ -117,7 +117,7 @@ a {
   overflow: hidden;
   place-items: center;
   color: var(--navy-950);
-  background: #edf7f9;
+  background: #f4f8fb;
   border: 1px solid rgba(255, 255, 255, 0.94);
   border-radius: 6px;
   box-shadow: inset 0 0 0 1px rgba(23, 105, 224, 0.13);
@@ -136,17 +136,18 @@ a {
   stroke-width: 1.35;
 }
 
-.brand-chart-line,
-.brand-chart-arrow {
+.brand-chart-line {
   fill: none;
   stroke: currentColor;
   stroke-linecap: round;
   stroke-linejoin: round;
-  stroke-width: 2.15;
+  stroke-width: 2.25;
 }
 
-.brand-chart-arrow {
-  stroke: var(--teal-600);
+.brand-chart-endpoint {
+  fill: var(--blue-700);
+  stroke: #fff;
+  stroke-width: 0.8;
 }
 
 .brand-copy {
