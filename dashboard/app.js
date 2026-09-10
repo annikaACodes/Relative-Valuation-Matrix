@@ -57,7 +57,7 @@ const state = {
   activeView: "matrix",
   query: "",
   category: "all",
-  portcoOnly: true,
+  portcoOnly: false,
   sortKey: "market_cap_usd_bn",
   sortDirection: "desc",
   optionIndex: -1,

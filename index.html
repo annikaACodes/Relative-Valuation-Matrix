@@ -8,42 +8,17 @@
       content="Calendar-normalized 2027 and 2028 valuation comparisons for the global semiconductor universe."
     />
     <title>Relative Valuation Matrix</title>
-    <link rel="stylesheet" href="dashboard/styles.css?v=20260910-3" />
-    <script defer src="dashboard/app.js?v=20260910-3"></script>
+    <link rel="stylesheet" href="dashboard/styles.css?v=20260910-4" />
+    <script defer src="dashboard/app.js?v=20260910-4"></script>
   </head>
   <body>
     <header class="app-header">
       <a class="brand" href="#matrix" aria-label="Relative Valuation Matrix home">
         <span class="brand-mark" aria-hidden="true">
           <svg viewBox="0 0 32 32" focusable="false">
-            <defs>
-              <pattern id="brandMatrixGrid" x="4.5" y="6.5" width="4" height="4" patternUnits="userSpaceOnUse">
-                <rect width="3" height="3" rx="0.55"></rect>
-              </pattern>
-            </defs>
-            <rect class="brand-matrix-grid" x="4.5" y="6.5" width="23" height="19" fill="url(#brandMatrixGrid)"></rect>
-            <g class="brand-matrix-aa">
-              <rect x="8.5" y="6.5" width="3" height="3" rx="0.55"></rect>
-              <rect x="4.5" y="10.5" width="3" height="3" rx="0.55"></rect>
-              <rect x="12.5" y="10.5" width="3" height="3" rx="0.55"></rect>
-              <rect x="4.5" y="14.5" width="3" height="3" rx="0.55"></rect>
-              <rect x="8.5" y="14.5" width="3" height="3" rx="0.55"></rect>
-              <rect x="12.5" y="14.5" width="3" height="3" rx="0.55"></rect>
-              <rect x="4.5" y="18.5" width="3" height="3" rx="0.55"></rect>
-              <rect x="12.5" y="18.5" width="3" height="3" rx="0.55"></rect>
-              <rect x="4.5" y="22.5" width="3" height="3" rx="0.55"></rect>
-              <rect x="12.5" y="22.5" width="3" height="3" rx="0.55"></rect>
-              <rect x="20.5" y="6.5" width="3" height="3" rx="0.55"></rect>
-              <rect x="16.5" y="10.5" width="3" height="3" rx="0.55"></rect>
-              <rect x="24.5" y="10.5" width="3" height="3" rx="0.55"></rect>
-              <rect x="16.5" y="14.5" width="3" height="3" rx="0.55"></rect>
-              <rect x="20.5" y="14.5" width="3" height="3" rx="0.55"></rect>
-              <rect x="24.5" y="14.5" width="3" height="3" rx="0.55"></rect>
-              <rect x="16.5" y="18.5" width="3" height="3" rx="0.55"></rect>
-              <rect x="24.5" y="18.5" width="3" height="3" rx="0.55"></rect>
-              <rect x="16.5" y="22.5" width="3" height="3" rx="0.55"></rect>
-              <rect x="24.5" y="22.5" width="3" height="3" rx="0.55"></rect>
-            </g>
+            <path class="brand-chart-axis" d="M5.5 6.5v19h21"></path>
+            <path class="brand-chart-line" d="M7 23l4-8 4 7 4.5-9 3.5 5 3-10"></path>
+            <path class="brand-chart-arrow" d="M21.5 8H26v4.5"></path>
           </svg>
         </span>
         <span class="brand-copy">
@@ -109,11 +84,11 @@
           <div class="quick-filter-field">
             <span>Quick filter</span>
             <button
-              class="portco-filter-button is-active"
+              class="portco-filter-button"
               id="portcoFilterButton"
               type="button"
-              aria-pressed="true"
-              title="Show the full semiconductor universe"
+              aria-pressed="false"
+              title="Show companies in the PortCo list"
             >PortCo</button>
           </div>
 
