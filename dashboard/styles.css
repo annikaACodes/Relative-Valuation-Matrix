@@ -702,8 +702,8 @@ a {
 
 .matrix-table th,
 .matrix-table td {
-  height: 48px;
-  padding: 6px 10px;
+  height: 42px;
+  padding: 4px 8px;
   border-right: 1px solid #e9eef3;
   border-bottom: 1px solid #e7edf3;
   text-align: center;
@@ -712,15 +712,15 @@ a {
 }
 
 .matrix-table .company-col {
-  width: 28%;
+  width: 41.5%;
 }
 
 .matrix-table .metric-col {
-  width: 16.75%;
+  width: 13.5%;
 }
 
 .matrix-table .action-col {
-  width: 5%;
+  width: 4.5%;
 }
 
 .matrix-table th {
@@ -770,8 +770,8 @@ a {
 }
 
 .matrix-table td:nth-child(1) {
-  padding-right: 10px;
-  padding-left: 10px;
+  padding-right: 8px;
+  padding-left: 8px;
 }
 
 .matrix-table .compare-column,
@@ -807,8 +807,8 @@ a {
 }
 
 .matrix-table tbody td[data-year] {
-  padding-right: 10px;
-  padding-left: 10px;
+  padding-right: 6px;
+  padding-left: 6px;
   font-size: var(--metric-cell-font-size, 1rem);
 }
 
@@ -889,18 +889,18 @@ a {
 
 .company-name-wrap {
   min-width: 0;
+  flex: 1 1 auto;
 }
 
 .company-name {
-  display: -webkit-box;
+  display: block;
   overflow: hidden;
   color: var(--ink);
   font-size: 0.87rem;
   font-weight: 750;
   line-height: 1.14;
-  white-space: normal;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .company-country {
@@ -915,7 +915,7 @@ a {
   display: inline-block;
   min-width: 78px;
   flex: 0 0 auto;
-  padding: 4px 6px;
+  padding: 3px 6px;
   color: #ffffff;
   background: var(--year-2027);
   border: 1px solid #1d3f60;

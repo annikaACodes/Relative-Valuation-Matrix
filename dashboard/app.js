@@ -57,8 +57,8 @@ const state = {
   query: "",
   category: "all",
   portcoOnly: false,
-  sortKey: "company_name",
-  sortDirection: "asc",
+  sortKey: "market_cap_usd_bn",
+  sortDirection: "desc",
   optionIndex: -1,
   toastTimer: null,
 };
@@ -360,12 +360,12 @@ function renderMatrix() {
 
 function renderMatrixStructure(years, metrics) {
   const metricColumnCount = years.length * metrics.length;
-  const actionArea = 5;
+  const actionArea = 4.5;
   const widths = {
-    company: 28,
+    company: 41.5,
   };
   widths.metric = (100 - actionArea - widths.company) / metricColumnCount;
-  const metricType = widths.metric >= 16
+  const metricType = widths.metric >= 13
     ? { cell: "1rem", header: "0.93rem", year: "0.96rem" }
     : widths.metric >= 12
       ? { cell: "0.94rem", header: "0.88rem", year: "0.92rem" }
