@@ -114,13 +114,27 @@ a {
   display: grid;
   width: 38px;
   height: 38px;
+  overflow: hidden;
   place-items: center;
   color: var(--navy-950);
   background: #7fd4e1;
   border: 2px solid #ffffff;
   border-radius: 6px;
-  font-size: 0.78rem;
-  font-weight: 900;
+}
+
+.brand-mark svg {
+  display: block;
+  width: 30px;
+  height: 30px;
+}
+
+.brand-matrix-grid {
+  color: var(--navy-950);
+  opacity: 0.14;
+}
+
+.brand-matrix-aa {
+  fill: currentColor;
 }
 
 .brand-copy {
