@@ -358,7 +358,7 @@ a {
 }
 
 .matrix-toolbar {
-  grid-template-columns: minmax(320px, 2fr) minmax(220px, 1fr);
+  grid-template-columns: minmax(320px, 2fr) minmax(220px, 1fr) auto;
 }
 
 .search-field,
@@ -415,6 +415,49 @@ a {
   min-width: 0;
   flex-direction: column;
   gap: 4px;
+}
+
+.quick-filter-field {
+  display: flex;
+  min-width: 94px;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.quick-filter-field > span {
+  color: var(--muted);
+  font-size: 0.67rem;
+  font-weight: 750;
+}
+
+.portco-filter-button {
+  min-width: 94px;
+  height: 40px;
+  padding: 7px 14px;
+  color: var(--navy-800);
+  background: var(--surface-subtle);
+  border: 1px solid var(--line-strong);
+  border-radius: 5px;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.portco-filter-button:hover {
+  color: var(--blue-700);
+  background: #eef5fb;
+  border-color: #80a8ca;
+}
+
+.portco-filter-button.is-active {
+  color: #ffffff;
+  background: var(--blue-700);
+  border-color: var(--blue-700);
+  box-shadow: inset 3px 0 var(--teal-600);
+}
+
+.portco-filter-button.is-active:hover {
+  color: #ffffff;
+  background: #104d9f;
 }
 
 .unit-toggle-field,

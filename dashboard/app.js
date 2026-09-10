@@ -9,6 +9,7 @@ const MAX_SELECTION = 10;
 const INSUFFICIENT_DATA = "Insufficient Data";
 const COMPARE_EMPTY = "&mdash;";
 const DEFAULT_SELECTION = ["nvidia", "tsmc", "broadcom"];
+const PORTCO_TICKERS = new Set(["AMAT", "AMD", "AVGO", "INTC", "MU", "TSM", "TXN"]);
 const EXCEL_MIME = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 const EXCELJS_SOURCES = [
   "dashboard/vendor/exceljs.min.js",
@@ -47,6 +48,7 @@ const state = {
   activeView: "matrix",
   query: "",
   category: "all",
+  portcoOnly: false,
   sortKey: "market_cap_usd_bn",
   sortDirection: "desc",
   optionIndex: -1,
@@ -71,6 +73,7 @@ function cacheElements() {
     "marketCapAsOf",
     "matrixSearch",
     "categoryFilter",
+    "portcoFilterButton",
     "matrixResultCount",
     "matrixTable",
     "matrixColgroup",
@@ -109,6 +112,12 @@ function bindEvents() {
 
   elements.categoryFilter.addEventListener("change", (event) => {
     state.category = event.target.value;
+    renderMatrix();
+  });
+
+  elements.portcoFilterButton.addEventListener("click", () => {
+    state.portcoOnly = !state.portcoOnly;
+    syncPortcoFilter();
     renderMatrix();
   });
 
@@ -331,7 +340,10 @@ function renderMatrix() {
   const selected = new Set(state.selectedIds);
   const columnCount = 4 + (years.length * metrics.length);
 
-  elements.matrixResultCount.textContent = `${companies.length} ${companies.length === 1 ? "company" : "companies"}`;
+  const companyLabel = companies.length === 1 ? "company" : "companies";
+  elements.matrixResultCount.textContent = state.portcoOnly
+    ? `${companies.length} PortCo ${companyLabel}`
+    : `${companies.length} ${companyLabel}`;
   elements.matrixBody.innerHTML = companies.length
     ? companies.map((company) => matrixRow(company, selected.has(company.id), years, metrics)).join("")
     : `<tr class="empty-row"><td colspan="${columnCount}">No companies match the current filters.</td></tr>`;
@@ -450,9 +462,18 @@ function getFilteredCompanies() {
       const searchText = `${company.company_name} ${company.Ticker} ${company.country} ${company.segment}`.toLowerCase();
       const matchesQuery = !state.query || searchText.includes(state.query);
       const matchesCategory = state.category === "all" || company.category === state.category;
-      return matchesQuery && matchesCategory;
+      const matchesPortco = !state.portcoOnly || PORTCO_TICKERS.has(company.Ticker);
+      return matchesQuery && matchesCategory && matchesPortco;
     })
     .sort(compareCompanies);
+}
+
+function syncPortcoFilter() {
+  elements.portcoFilterButton.classList.toggle("is-active", state.portcoOnly);
+  elements.portcoFilterButton.setAttribute("aria-pressed", String(state.portcoOnly));
+  elements.portcoFilterButton.title = state.portcoOnly
+    ? "Show the full semiconductor universe"
+    : "Show companies in the PortCo list";
 }
 
 function compareCompanies(left, right) {
@@ -990,6 +1011,7 @@ async function exportMatrixView(companies) {
     const metricNames = metrics.map((metric) => metric.label).join(", ");
     const filterParts = [
       state.category === "all" ? "All businesses" : state.category,
+      state.portcoOnly ? "PortCo only" : null,
       state.query ? `Search: ${state.query}` : null,
     ].filter(Boolean);
     addProfessionalSheet(workbook, {
