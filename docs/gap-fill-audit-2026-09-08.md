@@ -20,7 +20,7 @@ Every researched input is stored in `data/supplemental_fiscal_forecasts.csv` wit
 
 ## Remaining blanks
 
-Negative P/E and EV/FCF values remain blank because those ratios are not economically meaningful. This applies to loss-making or negative-FCF periods for Intel, Cambricon Technologies, ASE Technology, SMIC, Cerebras Systems, Ibiden, Yuanjie Semiconductor, Hua Hong Semiconductor, Tower Semiconductor, Skyverse Technology, Techwinsemi Technology, and Xi'an Eswin Material Technology.
+Negative P/E and EV/FCF values remain null in the database because those ratios are not economically meaningful; the dashboard and exports identify them as `N/M`. This applies to loss-making or negative-FCF periods for Intel, Cambricon Technologies, ASE Technology, SMIC, Cerebras Systems, Ibiden, Yuanjie Semiconductor, Hua Hong Semiconductor, Tower Semiconductor, Skyverse Technology, Techwinsemi Technology, and Xi'an Eswin Material Technology.
 
 The true residual forecast gaps are concentrated in projected FCF or balance-sheet fields for CXMT, Cambricon, SJ Semiconductor, Moore Threads, DapuStor, Winbond Electronics, Skyverse Technology, and Xi'an Eswin Material Technology. Public pages were checked more broadly for these companies, but no defensible matching-year capex, EBITDA, or net-debt forecast was available. CFO/share alone was not treated as FCF/share, and a missing net-debt forecast was not replaced with a current balance-sheet value.
 

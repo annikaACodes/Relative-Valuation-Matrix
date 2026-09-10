@@ -17,8 +17,8 @@ asml,2027,EUR,1,0,51.54,59.8637,43.554,50.588,1.1615,official-fx,official-fx,27.
 asml,2028,EUR,1,0,66.73,77.5069,53.1985,61.7901,1.1615,official-fx,official-fx,21.13,24.91,-1.05,direct,0,0,published-consensus-eps,2026-09-03,2026-09-03
 cxmt,2027,CNY,1,0,4.754,0.7075,4.4404,0.6609,0.148830117116,official-fx,official-fx,11.43,10.56,-1.03,direct,0,0,mixed-or-net-income,2026-09-03,2026-09-08
 cxmt,2028,CNY,1,0,5.44,0.8096,5.0787,0.7559,0.148830117116,official-fx,official-fx,9.99,,,partial,0,2,mixed-or-net-income,2026-09-03,2026-09-08
-intel,2027,USD,0.983562,0.016438,1.5956,1.5956,-0.26,-0.26,1,reported-usd,reported-usd,55.84,,0.75,direct,0,0,published-consensus-eps,2026-09-03,2026-09-03
-intel,2028,USD,0.997268,0.002732,2.05,2.05,0.672,0.672,1,reported-usd,reported-usd,43.46,135.69,0.31,flat-tail,1,0,published-consensus-eps,2026-09-03,2026-09-03
+intel,2027,USD,0.983562,0.016438,1.5963,1.5963,-0.2238,-0.2238,1,reported-usd,reported-usd,55.82,,0.75,direct,0,0,published-consensus-eps,2026-09-03,2026-09-10
+intel,2028,USD,0.997268,0.002732,2.033,2.033,0.781,0.781,1,reported-usd,reported-usd,43.83,116.74,0.31,flat-tail,1,0,published-consensus-eps,2026-09-03,2026-09-10
 lam-research,2027,USD,0.487671,0.512329,10.5557,10.5557,8.5924,8.5924,1,reported-usd,reported-usd,27.31,32.78,-0.55,direct,0,0,published-consensus-eps,2026-09-03,2026-09-03
 lam-research,2028,USD,0.483607,0.516393,12.8429,12.8429,10.5684,10.5684,1,reported-usd,reported-usd,22.45,26.26,-0.76,direct,0,0,published-consensus-eps,2026-09-03,2026-09-03
 applied-materials,2027,USD,0.832877,0.167123,19.3558,19.3558,14.0859,14.0859,1,reported-usd,reported-usd,22.09,29.54,-0.52,direct,0,0,published-consensus-eps,2026-09-03,2026-09-03

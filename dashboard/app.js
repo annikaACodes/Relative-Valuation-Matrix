@@ -540,10 +540,29 @@ function matrixRow(company, isSelected, years, metrics) {
 function metricCell(company, year, metric) {
   const value = company[`cy${year}_${metric.key}`];
   const quality = company[`quality${year}`];
-  const titleParts = [`${metric.label}: ${value === null ? INSUFFICIENT_DATA : formatFull(value, metric.key)}`];
+  const unavailableLabel = metricUnavailableLabel(company, year, metric.key);
+  const unavailableTitle = metricUnavailableTitle(company, year, metric.key);
+  const titleParts = [`${metric.label}: ${value === null ? unavailableTitle : formatFull(value, metric.key)}`];
   titleParts.push(`Quality: ${quality}`);
   const marker = quality === "flat-tail" ? '<i class="quality-marker" aria-label="Flat-tail estimate"></i>' : "";
-  return `<td data-year="${year}" data-metric="${escapeHtml(metric.baseKey)}" title="${escapeHtml(titleParts.join(" | "))}">${value === null ? `<span class="metric-missing">${INSUFFICIENT_DATA}</span>` : `<span class="metric-value">${formatMetric(value, metric.key)}${marker}</span>`}</td>`;
+  return `<td data-year="${year}" data-metric="${escapeHtml(metric.baseKey)}" title="${escapeHtml(titleParts.join(" | "))}">${value === null ? `<span class="metric-missing">${unavailableLabel}</span>` : `<span class="metric-value">${formatMetric(value, metric.key)}${marker}</span>`}</td>`;
+}
+
+function metricUnavailableLabel(company, year, metricKey) {
+  if (metricKey === "pe" && Number.isFinite(company[`cy${year}_eps`]) && company[`cy${year}_eps`] <= 0) return "N/M";
+  if (metricKey === "ev_fcf" && Number.isFinite(company[`cy${year}_fcf`]) && company[`cy${year}_fcf`] <= 0) return "N/M";
+  return INSUFFICIENT_DATA;
+}
+
+function metricUnavailableTitle(company, year, metricKey) {
+  const label = metricUnavailableLabel(company, year, metricKey);
+  if (label !== "N/M") return label;
+  return metricKey === "pe" ? "N/M (non-positive EPS)" : "N/M (non-positive FCF)";
+}
+
+function exportMetricValue(company, year, metricKey) {
+  const value = company[`cy${year}_${metricKey}`];
+  return value === null ? metricUnavailableLabel(company, year, metricKey) : value;
 }
 
 function setView(view, updateHash = true) {
@@ -742,25 +761,25 @@ function renderPairedBars(metric, companies) {
       <div class="chart-company-row">
         ${chartCompanyLabel(company)}
         <div class="paired-bars">
-          ${barLine(2027, value2027, maxValue, medians[2027])}
-          ${barLine(2028, value2028, maxValue, medians[2028])}
+          ${barLine(2027, value2027, maxValue, medians[2027], metricUnavailableLabel(company, 2027, metric.key))}
+          ${barLine(2028, value2028, maxValue, medians[2028], metricUnavailableLabel(company, 2028, metric.key))}
         </div>
       </div>`;
   });
   return `<div class="metric-chart">${rows.join("")}</div>`;
 }
 
-function barLine(year, value, maxValue, medianValue) {
+function barLine(year, value, maxValue, medianValue, unavailableLabel) {
   const width = value === null ? 0 : Math.max(0, Math.min(100, (value / maxValue) * 100));
   const medianPosition = medianValue === null ? null : Math.max(0, Math.min(100, (medianValue / maxValue) * 100));
   return `
-    <div class="bar-line" aria-label="CY${year}: ${value === null ? INSUFFICIENT_DATA : `${formatMetric(value, "multiple")} times`}">
+    <div class="bar-line" aria-label="CY${year}: ${value === null ? unavailableLabel : `${formatMetric(value, "multiple")} times`}">
       <span class="bar-year">${String(year).slice(-2)}</span>
       <span class="bar-track">
         ${medianPosition === null ? "" : `<i class="median-line" style="left:${medianPosition}%"></i>`}
         ${value === null ? "" : `<i class="bar-fill cy${String(year).slice(-2)}" style="display:block;width:${width}%"></i>`}
       </span>
-      <span class="bar-value">${value === null ? INSUFFICIENT_DATA : multiple(value)}</span>
+      <span class="bar-value">${value === null ? unavailableLabel : multiple(value)}</span>
     </div>`;
 }
 
@@ -848,13 +867,15 @@ function renderChangeTable(companies) {
           const peChange = percentChange(company.cy2027_pe, company.cy2028_pe);
           const evFcfChange = percentChange(company.cy2027_ev_fcf, company.cy2028_ev_fcf);
           const leverageChange = difference(company.cy2027_leverage, company.cy2028_leverage);
+          const hasEpsInputs = Number.isFinite(company.cy2027_eps) && Number.isFinite(company.cy2028_eps);
+          const hasFcfInputs = Number.isFinite(company.cy2027_fcf) && Number.isFinite(company.cy2028_fcf);
           return `
             <tr>
               <td><span class="change-company"><strong>${escapeHtml(company.company_name)}</strong><span>${escapeHtml(company.Ticker)}</span></span></td>
-              <td class="${deltaClass(epsGrowth)}">${signedPercent(epsGrowth)}</td>
-              <td class="${deltaClass(fcfGrowth)}">${signedPercent(fcfGrowth)}</td>
-              <td class="${deltaClass(peChange, true)}">${signedPercent(peChange)}</td>
-              <td class="${deltaClass(evFcfChange, true)}">${signedPercent(evFcfChange)}</td>
+              <td class="${deltaClass(epsGrowth)}">${changePercentLabel(epsGrowth, hasEpsInputs)}</td>
+              <td class="${deltaClass(fcfGrowth)}">${changePercentLabel(fcfGrowth, hasFcfInputs)}</td>
+              <td class="${deltaClass(peChange, true)}">${changePercentLabel(peChange, hasEpsInputs)}</td>
+              <td class="${deltaClass(evFcfChange, true)}">${changePercentLabel(evFcfChange, hasFcfInputs)}</td>
               <td class="${deltaClass(leverageChange, true)}">${signedMultiple(leverageChange)}</td>
             </tr>`;
         })
@@ -875,6 +896,16 @@ function percentChange(start, end) {
 function difference(start, end) {
   if (!Number.isFinite(start) || !Number.isFinite(end)) return null;
   return end - start;
+}
+
+function changePercentLabel(value, hasInputs) {
+  if (Number.isFinite(value)) return signedPercent(value);
+  return hasInputs ? "N/M" : INSUFFICIENT_DATA;
+}
+
+function exportPercentageChange(value, hasInputs) {
+  if (Number.isFinite(value)) return percentageDecimal(value);
+  return hasInputs ? "N/M" : INSUFFICIENT_DATA;
 }
 
 function deltaClass(value, lowerIsFavorable = false) {
@@ -922,14 +953,14 @@ async function exportComparisonWorkbook(companies) {
     const yearColumns = [2027, 2028].flatMap((year) => comparableMetrics.map((metric) => ({
       ...metric,
       key: `cy${year}_${metric.key}`,
-      value: (company) => company[`cy${year}_${metric.key}`],
+      value: (company) => exportMetricValue(company, year, metric.key),
       median: true,
     })));
     const changeColumns = [
-      { header: "EPS growth (reported currency)", width: 25, numberFormat: "+0.0%;[Red](0.0%);-", value: (company) => percentageDecimal(growth(company.cy2027_eps, company.cy2028_eps)), median: true },
-      { header: "FCF/share growth (reported currency)", width: 28, numberFormat: "+0.0%;[Red](0.0%);-", value: (company) => percentageDecimal(growth(company.cy2027_fcf, company.cy2028_fcf)), median: true },
-      { header: "P/E change", width: 15, numberFormat: "+0.0%;[Red](0.0%);-", value: (company) => percentageDecimal(percentChange(company.cy2027_pe, company.cy2028_pe)), median: true },
-      { header: "EV/FCF change", width: 17, numberFormat: "+0.0%;[Red](0.0%);-", value: (company) => percentageDecimal(percentChange(company.cy2027_ev_fcf, company.cy2028_ev_fcf)), median: true },
+      { header: "EPS growth (reported currency)", width: 25, numberFormat: "+0.0%;[Red](0.0%);-", value: (company) => exportPercentageChange(growth(company.cy2027_eps, company.cy2028_eps), Number.isFinite(company.cy2027_eps) && Number.isFinite(company.cy2028_eps)), median: true },
+      { header: "FCF/share growth (reported currency)", width: 28, numberFormat: "+0.0%;[Red](0.0%);-", value: (company) => exportPercentageChange(growth(company.cy2027_fcf, company.cy2028_fcf), Number.isFinite(company.cy2027_fcf) && Number.isFinite(company.cy2028_fcf)), median: true },
+      { header: "P/E change", width: 15, numberFormat: "+0.0%;[Red](0.0%);-", value: (company) => exportPercentageChange(percentChange(company.cy2027_pe, company.cy2028_pe), Number.isFinite(company.cy2027_eps) && Number.isFinite(company.cy2028_eps)), median: true },
+      { header: "EV/FCF change", width: 17, numberFormat: "+0.0%;[Red](0.0%);-", value: (company) => exportPercentageChange(percentChange(company.cy2027_ev_fcf, company.cy2028_ev_fcf), Number.isFinite(company.cy2027_fcf) && Number.isFinite(company.cy2028_fcf)), median: true },
       { header: "Net leverage change", width: 20, numberFormat: "+0.00x;[Red](0.00x);-", value: (company) => difference(company.cy2027_leverage, company.cy2028_leverage), median: true },
     ];
     const summaryColumns = [...identityColumns, ...yearColumns, ...changeColumns];
@@ -966,7 +997,7 @@ async function exportComparisonWorkbook(companies) {
     const detailYearColumns = [2027, 2028].flatMap((year) => detailMetrics.map((metric) => ({
       ...metric,
       key: metric.key === "quality" ? `quality${year}` : `cy${year}_${metric.key}`,
-      value: (company) => metric.key === "quality" ? company[`quality${year}`] : company[`cy${year}_${metric.key}`],
+      value: (company) => metric.key === "quality" ? company[`quality${year}`] : exportMetricValue(company, year, metric.key),
     })));
     const detailColumns = [...identityColumns, ...detailYearColumns];
     addProfessionalSheet(workbook, {
@@ -1007,7 +1038,7 @@ async function exportMatrixView(companies) {
       header: matrixExportHeader(metric),
       width: metric.baseKey === "leverage" ? 16 : 15,
       numberFormat: exportNumberFormat(metric),
-      value: (company) => company[`cy${year}_${metric.key}`],
+      value: (company) => exportMetricValue(company, year, metric.key),
     })));
     const columns = [...identityColumns, ...metricColumns];
     const groups = [

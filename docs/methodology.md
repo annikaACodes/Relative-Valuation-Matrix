@@ -43,7 +43,7 @@ Consensus earnings are reconstructed as published fiscal EPS multiplied by fisca
 - `CY EV/FCF = (valuation-date price * CY diluted shares + CY-end net debt) / CY FCF`
 - `CY Net leverage = CY-end net debt / CY EBITDA`
 
-Negative P/E and EV/FCF values are left blank as not meaningful. Negative net leverage means net cash. Both local-currency and USD per-share values are per underlying ordinary share, not per ADR. FX normalization aligns currencies but does not normalize differing share counts or ADR ratios; P/E, EV/FCF, and growth rates remain the better cross-company comparisons.
+P/E and EV/FCF remain null in the database when EPS or FCF is non-positive because the resulting valuation multiple is not economically meaningful; the dashboard and exports display these cases as `N/M` rather than as missing data. Negative net leverage means net cash. Both local-currency and USD per-share values are per underlying ordinary share, not per ADR. FX normalization aligns currencies but does not normalize differing share counts or ADR ratios; P/E, EV/FCF, and growth rates remain the better cross-company comparisons.
 
 If FY(Y+1) is missing and the uncovered part of the calendar year is no more than 34%, the script holds FY(Y) flat for that tail and labels the result `flat-tail`. It never extrapolates a larger missing period. Missing components remain blank and are labeled `partial`.
 
