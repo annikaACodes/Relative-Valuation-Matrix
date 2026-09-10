@@ -48,7 +48,6 @@ const COMPARE_METRICS = [
 const MATRIX_METRICS = [
   { key: "pe", label: "P / E", unit: "multiple" },
   { key: "ev_fcf", label: "EV / FCF", unit: "multiple" },
-  { key: "leverage", label: "Net leverage", unit: "net debt / EBITDA" },
 ];
 
 const state = {
@@ -58,15 +57,14 @@ const state = {
   query: "",
   category: "all",
   portcoOnly: false,
-  sortKey: "market_cap_usd_bn",
-  sortDirection: "desc",
+  sortKey: "company_name",
+  sortDirection: "asc",
   optionIndex: -1,
   toastTimer: null,
 };
 
 const elements = {};
 let excelJsPromise = null;
-let businessFitFrame = null;
 
 document.addEventListener("DOMContentLoaded", () => {
   cacheElements();
@@ -172,7 +170,6 @@ function bindEvents() {
     if (view === "matrix" || view === "compare") setView(view, false);
   });
 
-  window.addEventListener("resize", scheduleBusinessLabelFit);
 }
 
 async function initialize() {
@@ -348,7 +345,7 @@ function renderMatrix() {
   renderMatrixStructure(years, metrics);
   const companies = getFilteredCompanies();
   const selected = new Set(state.selectedIds);
-  const columnCount = 4 + (years.length * metrics.length);
+  const columnCount = 2 + (years.length * metrics.length);
 
   const companyLabel = companies.length === 1 ? "company" : "companies";
   elements.matrixResultCount.textContent = state.portcoOnly
@@ -359,22 +356,19 @@ function renderMatrix() {
     : `<tr class="empty-row"><td colspan="${columnCount}">No companies match the current filters.</td></tr>`;
 
   syncSortControls();
-  scheduleBusinessLabelFit();
 }
 
 function renderMatrixStructure(years, metrics) {
   const metricColumnCount = years.length * metrics.length;
-  const actionArea = 3.4;
+  const actionArea = 5;
   const widths = {
-    company: 20.5,
-    marketCap: 8.4,
-    business: 19.5,
+    company: 28,
   };
-  widths.metric = (100 - actionArea - widths.company - widths.marketCap - widths.business) / metricColumnCount;
-  const metricType = widths.metric >= 20
-    ? { cell: "0.96rem", header: "0.88rem", year: "0.92rem" }
+  widths.metric = (100 - actionArea - widths.company) / metricColumnCount;
+  const metricType = widths.metric >= 16
+    ? { cell: "1rem", header: "0.93rem", year: "0.96rem" }
     : widths.metric >= 12
-      ? { cell: "0.9rem", header: "0.84rem", year: "0.88rem" }
+      ? { cell: "0.94rem", header: "0.88rem", year: "0.92rem" }
       : widths.metric >= 8
         ? { cell: "0.84rem", header: "0.79rem", year: "0.85rem" }
         : { cell: "0.77rem", header: "0.74rem", year: "0.8rem" };
@@ -386,8 +380,6 @@ function renderMatrixStructure(years, metrics) {
   ))).join("");
   elements.matrixColgroup.innerHTML = `
     <col class="company-col" style="width:${widths.company.toFixed(3)}%" />
-    <col class="market-cap-col" style="width:${widths.marketCap.toFixed(3)}%" />
-    <col class="business-col" style="width:${widths.business.toFixed(3)}%" />
     ${metricColumns}
     <col class="action-col" style="width:${actionArea}%" />`;
 
@@ -403,30 +395,10 @@ function renderMatrixStructure(years, metrics) {
   elements.matrixHead.innerHTML = `
     <tr class="year-groups">
       <th class="sticky-company company-column" rowspan="2" scope="col"><button class="sort-button" type="button" data-sort="company_name" data-sort-label="Company">Company</button></th>
-      <th class="market-cap-column" rowspan="2" scope="col"><button class="sort-button" type="button" data-sort="market_cap_usd_bn" data-sort-label="Market cap">Market cap</button></th>
-      <th class="segment-column" rowspan="2" scope="col"><button class="sort-button" type="button" data-sort="segment" data-sort-label="Business">Business</button></th>
       ${yearGroups}
       <th class="compare-column" rowspan="2" scope="col"><span class="sr-only">Add to comparison</span></th>
     </tr>
     <tr class="metric-headers">${metricHeaders}</tr>`;
-}
-
-function scheduleBusinessLabelFit() {
-  cancelAnimationFrame(businessFitFrame);
-  businessFitFrame = requestAnimationFrame(fitBusinessLabels);
-}
-
-function fitBusinessLabels() {
-  elements.matrixBody.querySelectorAll(".segment-text").forEach((label) => {
-    label.style.fontSize = "";
-    const availableWidth = label.clientWidth;
-    const requiredWidth = label.scrollWidth;
-    if (!availableWidth || requiredWidth <= availableWidth) return;
-
-    const baseSize = Number.parseFloat(getComputedStyle(label).fontSize);
-    const fittedSize = Math.max(9, baseSize * ((availableWidth - 2) / requiredWidth));
-    label.style.fontSize = `${fittedSize.toFixed(2)}px`;
-  });
 }
 
 function syncSortControls() {
@@ -462,7 +434,6 @@ function metricTableLabel(metricKey) {
   return {
     pe: "P/E",
     ev_fcf: "EV/FCF",
-    leverage: "Net leverage",
   }[metricKey];
 }
 
@@ -521,8 +492,6 @@ function matrixRow(company, isSelected, years, metrics) {
           </span>
         </div>
       </td>
-      <td>${formatMarketCap(company.market_cap_usd_bn)}</td>
-      <td><span class="segment-text" title="${escapeHtml(company.segment)}">${escapeHtml(company.segment)}</span></td>
       ${metricCells}
       <td>
         <button
@@ -1032,11 +1001,11 @@ async function exportMatrixView(companies) {
     const workbook = createExportWorkbook(ExcelJS, "Current semiconductor valuation matrix view");
     const years = getVisibleYears();
     const metrics = getVisibleMatrixMetrics();
-    const identityColumns = getExportIdentityColumns();
+    const identityColumns = getMatrixExportIdentityColumns();
     const metricColumns = years.flatMap((year) => metrics.map((metric) => ({
       key: `cy${year}_${metric.key}`,
       header: matrixExportHeader(metric),
-      width: metric.baseKey === "leverage" ? 16 : 15,
+      width: 18,
       numberFormat: exportNumberFormat(metric),
       value: (company) => exportMetricValue(company, year, metric.key),
     })));
@@ -1058,7 +1027,7 @@ async function exportMatrixView(companies) {
     addProfessionalSheet(workbook, {
       name: "Valuation Matrix",
       title: "Relative Valuation Matrix",
-      context: `${companies.length} companies | ${years.map((year) => `CY${year}`).join(" + ")} | ${metricNames} | ${filterParts.join(" | ")} | Estimates as of ${formatDate(getLatestForecastDate())} | Market capitalizations as of ${formatDate(latestMarketCapDate(companies))}`,
+      context: `${companies.length} companies | ${years.map((year) => `CY${year}`).join(" + ")} | ${metricNames} | ${filterParts.join(" | ")} | Estimates as of ${formatDate(getLatestForecastDate())}`,
       columns,
       groups,
       rows: companies.map((company) => ({ values: rowValues(company, columns) })),
@@ -1096,11 +1065,17 @@ function getExportIdentityColumns() {
   ];
 }
 
+function getMatrixExportIdentityColumns() {
+  return [
+    { key: "company_name", header: "Company", width: 30, type: "text" },
+    { key: "Ticker", header: "Ticker", width: 14, type: "text" },
+  ];
+}
+
 function matrixExportHeader(metric) {
   return {
     pe: "P/E",
     ev_fcf: "EV/FCF",
-    leverage: "Net leverage",
   }[metric.baseKey] || metric.label;
 }
 

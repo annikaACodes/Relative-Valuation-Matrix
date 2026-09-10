@@ -696,14 +696,14 @@ a {
   border-collapse: separate;
   border-spacing: 0;
   table-layout: fixed;
-  font-size: 0.79rem;
+  font-size: 0.86rem;
   font-variant-numeric: tabular-nums;
 }
 
 .matrix-table th,
 .matrix-table td {
-  height: 50px;
-  padding: 5px 6px;
+  height: 48px;
+  padding: 6px 10px;
   border-right: 1px solid #e9eef3;
   border-bottom: 1px solid #e7edf3;
   text-align: center;
@@ -712,23 +712,15 @@ a {
 }
 
 .matrix-table .company-col {
-  width: 20.5%;
-}
-
-.matrix-table .market-cap-col {
-  width: 8.4%;
-}
-
-.matrix-table .business-col {
-  width: 19.5%;
+  width: 28%;
 }
 
 .matrix-table .metric-col {
-  width: 8.0333%;
+  width: 16.75%;
 }
 
 .matrix-table .action-col {
-  width: 3.4%;
+  width: 5%;
 }
 
 .matrix-table th {
@@ -738,7 +730,7 @@ a {
   height: 34px;
   color: var(--navy-800);
   background: #f2f6fa;
-  font-size: 0.8rem;
+  font-size: 0.86rem;
   font-weight: 800;
 }
 
@@ -754,14 +746,14 @@ a {
 }
 
 .matrix-table .metric-headers .sort-button {
-  padding-right: 14px;
+  padding-right: 20px;
   text-align: center;
 }
 
 .matrix-table .metric-headers th {
-  padding-right: 3px;
-  padding-left: 3px;
-  font-size: var(--metric-header-font-size, 0.74rem);
+  padding-right: 8px;
+  padding-left: 8px;
+  font-size: var(--metric-header-font-size, 0.93rem);
 }
 
 .matrix-table .metric-headers small {
@@ -777,34 +769,16 @@ a {
   text-align: left;
 }
 
-.matrix-table .segment-column,
-.matrix-table td:nth-child(3),
-.matrix-table .segment-text {
-  text-align: left;
-}
-
 .matrix-table td:nth-child(1) {
-  padding-right: 4px;
-  padding-left: 4px;
+  padding-right: 10px;
+  padding-left: 10px;
 }
 
 .matrix-table .compare-column,
 .matrix-table td:last-child {
-  padding-right: 4px;
-  padding-left: 4px;
+  padding-right: 6px;
+  padding-left: 6px;
   text-align: center;
-}
-
-.matrix-table .market-cap-column,
-.matrix-table td:nth-child(2) {
-  padding-right: 4px;
-  padding-left: 4px;
-}
-
-.matrix-table .market-cap-column .sort-button {
-  padding-right: 13px;
-  line-height: 1.12;
-  white-space: nowrap;
 }
 
 .matrix-table .sticky-company {
@@ -833,9 +807,9 @@ a {
 }
 
 .matrix-table tbody td[data-year] {
-  padding-right: 3px;
-  padding-left: 3px;
-  font-size: var(--metric-cell-font-size, 0.77rem);
+  padding-right: 10px;
+  padding-left: 10px;
+  font-size: var(--metric-cell-font-size, 1rem);
 }
 
 .matrix-table tbody tr.is-selected td,
@@ -844,7 +818,7 @@ a {
 }
 
 .matrix-table .year-group {
-  font-size: var(--year-group-font-size, 0.8rem);
+  font-size: var(--year-group-font-size, 0.96rem);
   text-align: center !important;
 }
 
@@ -875,11 +849,11 @@ a {
 .sort-button::after {
   position: absolute;
   top: 50%;
-  right: 2px;
+  right: 5px;
   width: 10px;
   color: #526b84;
   content: "\2193";
-  font-size: 0.82rem;
+  font-size: 0.95rem;
   font-weight: 900;
   line-height: 1;
   opacity: 0.78;
@@ -921,6 +895,7 @@ a {
   display: -webkit-box;
   overflow: hidden;
   color: var(--ink);
+  font-size: 0.87rem;
   font-weight: 750;
   line-height: 1.14;
   white-space: normal;
@@ -932,13 +907,13 @@ a {
   display: block;
   margin-top: 1px;
   color: var(--faint);
-  font-size: 0.61rem;
+  font-size: 0.68rem;
   line-height: 1.1;
 }
 
 .company-ticker {
   display: inline-block;
-  min-width: 70px;
+  min-width: 78px;
   flex: 0 0 auto;
   padding: 4px 6px;
   color: #ffffff;
@@ -946,17 +921,9 @@ a {
   border: 1px solid #1d3f60;
   border-radius: 4px;
   box-shadow: inset 3px 0 #72bec8;
-  font-size: 0.66rem;
+  font-size: 0.72rem;
   font-weight: 800;
   text-align: center;
-  white-space: nowrap;
-}
-
-.segment-text {
-  display: block;
-  overflow: hidden;
-  color: var(--muted);
-  line-height: 1.18;
   white-space: nowrap;
 }
 
@@ -1835,7 +1802,7 @@ a {
   }
 
   .matrix-table {
-    min-width: 1200px;
+    min-width: 760px;
   }
 
   .table-shell {
