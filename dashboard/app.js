@@ -8,8 +8,17 @@ const DATA_PATHS = {
 const MAX_SELECTION = 10;
 const INSUFFICIENT_DATA = "Insufficient Data";
 const COMPARE_EMPTY = "&mdash;";
-const DEFAULT_SELECTION = ["nvidia", "tsmc", "broadcom"];
-const PORTCO_TICKERS = new Set(["AMAT", "AMD", "AVGO", "INTC", "MU", "TSM", "TXN"]);
+const PORTCO_COMPANIES = [
+  { id: "applied-materials", ticker: "AMAT" },
+  { id: "amd", ticker: "AMD" },
+  { id: "broadcom", ticker: "AVGO" },
+  { id: "intel", ticker: "INTC" },
+  { id: "micron", ticker: "MU" },
+  { id: "tsmc", ticker: "TSM" },
+  { id: "texas-instruments", ticker: "TXN" },
+];
+const DEFAULT_SELECTION = PORTCO_COMPANIES.map((company) => company.id);
+const PORTCO_TICKERS = new Set(PORTCO_COMPANIES.map((company) => company.ticker));
 const EXCEL_MIME = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 const EXCELJS_SOURCES = [
   "dashboard/vendor/exceljs.min.js",
@@ -48,7 +57,7 @@ const state = {
   activeView: "matrix",
   query: "",
   category: "all",
-  portcoOnly: false,
+  portcoOnly: true,
   sortKey: "market_cap_usd_bn",
   sortDirection: "desc",
   optionIndex: -1,
@@ -183,6 +192,7 @@ async function initialize() {
     state.companies = universeRows.map((row) => normalizeCompany(row, calendarizedMap));
     hydrateSelectionFromUrl();
     populateCategories();
+    syncPortcoFilter();
     renderSummary();
     renderMatrix();
     renderComparison();
