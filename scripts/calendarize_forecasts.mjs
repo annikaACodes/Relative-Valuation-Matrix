@@ -349,6 +349,11 @@ writeCsv(OUTPUT_PATH, output, [
 const metricsByCompany = groupByCompany(output);
 const universeColumns = Object.keys(universe[0]).filter((key) => !METRIC_COLUMNS.includes(key));
 const displayMetric = (value) => value === "" || value == null ? "Insufficient Data" : value;
+const displayEvToFcf = (metric) => {
+  if (metric?.ev_to_fcf !== "" && metric?.ev_to_fcf != null) return metric.ev_to_fcf;
+  const fcfPerShare = numberOrNull(metric?.fcf_per_share);
+  return fcfPerShare != null && fcfPerShare <= 0 ? "N/M" : "Insufficient Data";
+};
 for (const company of universe) {
   for (const year of [2027, 2028]) {
     const metric = (metricsByCompany.get(company.company_id) ?? []).find((row) => row.calendar_year === String(year));
@@ -357,7 +362,7 @@ for (const company of universe) {
     company[`CY${year} FCF/share`] = displayMetric(metric?.fcf_per_share);
     company[`CY${year} FCF/share (USD)`] = displayMetric(metric?.fcf_per_share_usd);
     company[`CY${year} P/E`] = displayMetric(metric?.pe);
-    company[`CY${year} EV/FCF`] = displayMetric(metric?.ev_to_fcf);
+    company[`CY${year} EV/FCF`] = displayEvToFcf(metric);
     company[`CY${year} Net leverage`] = displayMetric(metric?.net_leverage);
   }
 }
