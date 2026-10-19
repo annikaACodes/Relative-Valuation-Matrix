@@ -15,6 +15,7 @@ const required = [
   "dashboard/vendor/exceljs.min.js",
   "data/semiconductor_universe.csv",
   "data/calendarized_metrics.csv",
+  "data/update_status.json",
   "docs/methodology.md",
   "login/index.html",
   "login/login.css",

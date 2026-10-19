@@ -3,6 +3,7 @@
 const DATA_PATHS = {
   universe: "data/semiconductor_universe.csv",
   calendarized: "data/calendarized_metrics.csv",
+  updateStatus: "data/update_status.json",
 };
 
 const MAX_SELECTION = 10;
@@ -61,6 +62,7 @@ const state = {
   sortDirection: "desc",
   optionIndex: -1,
   toastTimer: null,
+  successfulRefreshDate: "",
 };
 
 const elements = {};
@@ -176,9 +178,10 @@ async function initialize() {
   elements.errorState.hidden = true;
   elements.matrixLoading.hidden = false;
   try {
-    const [universeText, calendarizedText] = await Promise.all([
+    const [universeText, calendarizedText, updateStatus] = await Promise.all([
       fetchText(DATA_PATHS.universe),
       fetchText(DATA_PATHS.calendarized),
+      fetchJsonOptional(DATA_PATHS.updateStatus),
     ]);
     const universeRows = parseCsv(universeText);
     const calendarizedRows = parseCsv(calendarizedText);
@@ -186,6 +189,7 @@ async function initialize() {
       calendarizedRows.map((row) => [`${row.company_id}:${row.calendar_year}`, row]),
     );
 
+    state.successfulRefreshDate = updateStatus?.as_of_date || "";
     state.companies = universeRows.map((row) => normalizeCompany(row, calendarizedMap));
     hydrateSelectionFromUrl();
     populateCategories();
@@ -211,6 +215,13 @@ async function fetchText(path) {
   const response = await fetch(path, { cache: "no-store" });
   if (!response.ok) throw new Error(`Could not load ${path}: ${response.status}`);
   return response.text();
+}
+
+async function fetchJsonOptional(path) {
+  const response = await fetch(path, { cache: "no-store" });
+  if (response.status === 404) return null;
+  if (!response.ok) throw new Error(`Could not load ${path}: ${response.status}`);
+  return response.json();
 }
 
 function parseCsv(text) {
@@ -335,7 +346,9 @@ function renderSummary() {
 }
 
 function getLatestForecastDate() {
-  return state.companies.map((company) => company.forecast_source_date).filter(Boolean).sort().at(-1) || "";
+  return state.successfulRefreshDate
+    || state.companies.map((company) => company.forecast_source_date).filter(Boolean).sort().at(-1)
+    || "";
 }
 
 function renderMatrix() {

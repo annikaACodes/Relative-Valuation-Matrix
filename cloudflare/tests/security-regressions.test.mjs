@@ -26,6 +26,13 @@ test("dashboard visualizations do not rely on CSP-blocked inline styles", () => 
   assert.match(appSource, /<svg class="leverage-track"/u);
 });
 
+test("dashboard freshness follows the last successful updater run", () => {
+  const appSource = readFileSync(new URL("../../dashboard/app.js", import.meta.url), "utf8");
+  assert.match(appSource, /updateStatus: "data\/update_status\.json"/u);
+  assert.match(appSource, /state\.successfulRefreshDate = updateStatus\?\.as_of_date \|\| ""/u);
+  assert.match(appSource, /return state\.successfulRefreshDate/u);
+});
+
 function environment(overrides = {}) {
   const state = { assetFetches: [] };
   const env = {

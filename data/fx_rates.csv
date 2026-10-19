@@ -1,10 +1,9 @@
 rate_date,currency,usd_per_currency,calculation,source_url,source_note
-2026-09-03,USD,1,identity,,Official USD-reported figures are retained without conversion
-2026-09-03,EUR,1.1615,ECB direct EUR/USD,https://eur-lex.europa.eu/eli/C/2026/4599/oj/eng,ECB reference rate: EUR 1 = USD 1.1615
-2026-09-03,CNY,0.148830117116,ECB EUR cross-rate,https://eur-lex.europa.eu/eli/C/2026/4599/oj/eng,USD per CNY = 1.1615 / 7.8042
-2026-09-03,JPY,0.006409690414,ECB EUR cross-rate,https://eur-lex.europa.eu/eli/C/2026/4599/oj/eng,USD per JPY = 1.1615 / 181.21
-2026-09-03,KRW,0.000736763316,ECB EUR cross-rate,https://eur-lex.europa.eu/eli/C/2026/4599/oj/eng,USD per KRW = 1.1615 / 1576.49
-2026-09-03,CHF,1.236954206603,ECB EUR cross-rate,https://eur-lex.europa.eu/eli/C/2026/4599/oj/eng,USD per CHF = 1.1615 / 0.9390
-2026-09-03,TWD,0.031491103763,CBC direct USD/TWD,https://www.cbc.gov.tw/en/lp-700-2-1-20.html,USD per TWD = 1 / 31.755 using the Taiwan interbank closing rate
-2026-09-04,USD,1,identity,,Official USD-reported figures are retained without conversion
-2026-09-08,CNY,0.149019708479,ECB EUR cross-rate,https://www.ecb.europa.eu/stats/policy_and_exchange_rates/euro_reference_exchange_rates/html/index.en.html,USD per CNY = 1.1614 / 7.7936
+2026-10-18,BRL,0.1972347685449991124435415475,1 / Frankfurter USD reference quote,https://api.frankfurter.dev/v2/rates?base=USD&quotes=BRL%2CCNY%2CEUR%2CHKD%2CJPY%2CKRW,Frankfurter reference rate dated 2026-10-18
+2026-10-18,CNY,0.1496423547720946936820997815,1 / Frankfurter USD reference quote,https://api.frankfurter.dev/v2/rates?base=USD&quotes=BRL%2CCNY%2CEUR%2CHKD%2CJPY%2CKRW,Frankfurter reference rate dated 2026-10-19
+2026-10-18,EUR,1.123406167499859574229062518,1 / Frankfurter USD reference quote,https://api.frankfurter.dev/v2/rates?base=USD&quotes=BRL%2CCNY%2CEUR%2CHKD%2CJPY%2CKRW,Frankfurter reference rate dated 2026-10-19
+2026-10-18,HKD,0.1273139306902961322027856288,1 / Frankfurter USD reference quote,https://api.frankfurter.dev/v2/rates?base=USD&quotes=BRL%2CCNY%2CEUR%2CHKD%2CJPY%2CKRW,Frankfurter reference rate dated 2026-10-19
+2026-10-18,JPY,0.006326711375427053017841326079,1 / Frankfurter USD reference quote,https://api.frankfurter.dev/v2/rates?base=USD&quotes=BRL%2CCNY%2CEUR%2CHKD%2CJPY%2CKRW,Frankfurter reference rate dated 2026-10-19
+2026-10-18,KRW,0.0007474456046461218784802935966,1 / Frankfurter USD reference quote,https://api.frankfurter.dev/v2/rates?base=USD&quotes=BRL%2CCNY%2CEUR%2CHKD%2CJPY%2CKRW,Frankfurter reference rate dated 2026-10-19
+2026-10-18,TWD,0.03082022354031414684011959726,1 / ExchangeRate-API USD quote,https://open.er-api.com/v6/latest/USD,"TWD reference rate updated Mon, 19 Oct 2026 00:02:32 +0000"
+2026-10-18,USD,1,identity,,USD-reported values require no conversion

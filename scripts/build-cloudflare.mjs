@@ -14,6 +14,7 @@ for (const [source, destination] of [
   ["docs", "docs"],
   ["data/semiconductor_universe.csv", "data/semiconductor_universe.csv"],
   ["data/calendarized_metrics.csv", "data/calendarized_metrics.csv"],
+  ["data/update_status.json", "data/update_status.json"],
   ["cloudflare/public", "."]
 ]) {
   const sourcePath = resolve(root, source);
