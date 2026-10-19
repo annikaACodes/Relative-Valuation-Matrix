@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { createHash, randomBytes } from "node:crypto";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 
 import worker from "../worker/index.js";
@@ -15,6 +16,15 @@ const ACCESS_CODE = "qa-only-high-entropy-access-code";
 const AUTH_ACCESS_CODE_HASH = createHash("sha256").update(ACCESS_CODE).digest("base64url");
 const AUTH_SESSION_SECRET = randomBytes(32).toString("base64url");
 const ORIGIN = "https://research.example";
+
+test("dashboard visualizations do not rely on CSP-blocked inline styles", () => {
+  const appSource = readFileSync(new URL("../../dashboard/app.js", import.meta.url), "utf8");
+  assert.doesNotMatch(appSource, /style\s*=\s*["']/u);
+  assert.doesNotMatch(appSource, /\.style\./u);
+  assert.match(appSource, /<svg class="bar-track"/u);
+  assert.match(appSource, /<svg class="growth-track"/u);
+  assert.match(appSource, /<svg class="leverage-track"/u);
+});
 
 function environment(overrides = {}) {
   const state = { assetFetches: [] };

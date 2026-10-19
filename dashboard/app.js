@@ -359,29 +359,13 @@ function renderMatrix() {
 }
 
 function renderMatrixStructure(years, metrics) {
-  const metricColumnCount = years.length * metrics.length;
-  const actionArea = 4.5;
-  const widths = {
-    company: 41.5,
-  };
-  widths.metric = (100 - actionArea - widths.company) / metricColumnCount;
-  const metricType = widths.metric >= 13
-    ? { cell: "1rem", header: "0.93rem", year: "0.96rem" }
-    : widths.metric >= 12
-      ? { cell: "0.94rem", header: "0.88rem", year: "0.92rem" }
-      : widths.metric >= 8
-        ? { cell: "0.84rem", header: "0.79rem", year: "0.85rem" }
-        : { cell: "0.77rem", header: "0.74rem", year: "0.8rem" };
-  elements.matrixTable.style.setProperty("--metric-cell-font-size", metricType.cell);
-  elements.matrixTable.style.setProperty("--metric-header-font-size", metricType.header);
-  elements.matrixTable.style.setProperty("--year-group-font-size", metricType.year);
   const metricColumns = years.flatMap((year) => metrics.map((metric) => (
-    `<col class="metric-col" data-year="${year}" data-metric="${escapeHtml(metric.baseKey)}" style="width:${widths.metric.toFixed(3)}%" />`
+    `<col class="metric-col" data-year="${year}" data-metric="${escapeHtml(metric.baseKey)}" />`
   ))).join("");
   elements.matrixColgroup.innerHTML = `
-    <col class="company-col" style="width:${widths.company.toFixed(3)}%" />
+    <col class="company-col" />
     ${metricColumns}
-    <col class="action-col" style="width:${actionArea}%" />`;
+    <col class="action-col" />`;
 
   const yearGroups = years.map((year) => (
     `<th class="year-group year-${year}" colspan="${metrics.length}" scope="colgroup">CY${year}</th>`
@@ -739,15 +723,17 @@ function renderPairedBars(metric, companies) {
 }
 
 function barLine(year, value, maxValue, medianValue, unavailableLabel) {
-  const width = value === null ? 0 : Math.max(0, Math.min(100, (value / maxValue) * 100));
+  const rawWidth = value === null ? 0 : Math.max(0, Math.min(100, (value / maxValue) * 100));
+  const width = value > 0 ? Math.max(0.8, rawWidth) : rawWidth;
   const medianPosition = medianValue === null ? null : Math.max(0, Math.min(100, (medianValue / maxValue) * 100));
   return `
     <div class="bar-line" aria-label="CY${year}: ${value === null ? unavailableLabel : `${formatMetric(value, "multiple")} times`}">
       <span class="bar-year">${String(year).slice(-2)}</span>
-      <span class="bar-track">
-        ${medianPosition === null ? "" : `<i class="median-line" style="left:${medianPosition}%"></i>`}
-        ${value === null ? "" : `<i class="bar-fill cy${String(year).slice(-2)}" style="display:block;width:${width}%"></i>`}
-      </span>
+      <svg class="bar-track" viewBox="0 0 100 10" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+        <rect class="chart-track-background" x="0" y="0" width="100" height="10" rx="1.5"></rect>
+        ${value === null ? "" : `<rect class="bar-fill cy${String(year).slice(-2)}" x="0" y="0" width="${chartCoordinate(width)}" height="10" rx="1.5"></rect>`}
+        ${medianPosition === null ? "" : `<line class="median-line" x1="${chartCoordinate(medianPosition)}" x2="${chartCoordinate(medianPosition)}" y1="-3" y2="13"></line>`}
+      </svg>
       <span class="bar-value">${value === null ? unavailableLabel : multiple(value)}</span>
     </div>`;
 }
@@ -761,17 +747,22 @@ function renderGrowthBars(metric, companies) {
     const change = growth(value2027, value2028);
     const valid = Number.isFinite(change);
     const width = valid ? Math.min(50, (Math.min(Math.abs(change), 200) / scale) * 50) : 0;
+    const barStart = change < 0 ? 50 - width : 50;
     const hasInputs = Number.isFinite(value2027) && Number.isFinite(value2028);
     const direction = !valid ? "neutral" : change > 0 ? "positive" : change < 0 ? "negative" : "neutral";
     const actuals = `${formatMetric(value2027, metric.key)} → ${formatMetric(value2028, metric.key)} ${company.reporting_currency}`;
+    const capTitle = valid && Math.abs(change) > 200 ? "Visual capped at 200%; label shows full change" : "";
     return `
       <div class="chart-company-row">
         ${chartCompanyLabel(company)}
         <div>
           <div class="growth-visual">
-            <span class="growth-track" title="${valid && Math.abs(change) > 200 ? "Visual capped at 200%; label shows full change" : ""}">
-              ${valid ? `<i class="growth-bar ${direction}" style="width:${width}%"></i>` : ""}
-            </span>
+            <svg class="growth-track" viewBox="0 0 100 12" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+              ${capTitle ? `<title>${capTitle}</title>` : ""}
+              <rect class="chart-track-background" x="0" y="0" width="100" height="12" rx="1.5"></rect>
+              <line class="growth-zero" x1="50" x2="50" y1="-3" y2="15"></line>
+              ${valid ? `<rect class="growth-bar ${direction}" x="${chartCoordinate(barStart)}" y="2" width="${chartCoordinate(width)}" height="8" rx="1.5"></rect>` : ""}
+            </svg>
             <span class="growth-value ${direction}">${valid ? signedPercent(change) : hasInputs ? "N/M" : INSUFFICIENT_DATA}</span>
           </div>
           <div class="reported-values">${escapeHtml(actuals)}</div>
@@ -805,12 +796,13 @@ function renderLeverageChart(metric, companies) {
       <div class="chart-company-row">
         ${chartCompanyLabel(company)}
         <div class="leverage-visual">
-          <span class="leverage-track" aria-label="CY2027 ${multiple(value2027)}, CY2028 ${multiple(value2028)}">
-            ${zeroPosition === null ? "" : `<i class="leverage-zero" style="left:${zeroPosition}%" title="Zero leverage"></i>`}
-            ${value2027 !== null && value2028 !== null ? `<i class="leverage-range" style="left:${rangeLeft}%;width:${rangeWidth}%"></i>` : ""}
-            ${value2027 === null ? "" : `<i class="leverage-dot cy27" style="left:${position2027}%" title="CY2027 ${multiple(value2027)}"></i>`}
-            ${value2028 === null ? "" : `<i class="leverage-dot cy28" style="left:${position2028}%" title="CY2028 ${multiple(value2028)}"></i>`}
-          </span>
+          <svg class="leverage-track" viewBox="0 0 100 12" preserveAspectRatio="none" role="img" aria-label="CY2027 ${multiple(value2027)}, CY2028 ${multiple(value2028)}">
+            <rect class="chart-track-background" x="0" y="0" width="100" height="12" rx="1.5"></rect>
+            ${zeroPosition === null ? "" : `<line class="leverage-zero" x1="${chartCoordinate(zeroPosition)}" x2="${chartCoordinate(zeroPosition)}" y1="-3" y2="15"><title>Zero leverage</title></line>`}
+            ${value2027 !== null && value2028 !== null ? `<rect class="leverage-range" x="${chartCoordinate(rangeLeft)}" y="5" width="${chartCoordinate(rangeWidth)}" height="2"></rect>` : ""}
+            ${value2027 === null ? "" : leverageMarker(position2027, "cy27", `CY2027 ${multiple(value2027)}`)}
+            ${value2028 === null ? "" : leverageMarker(position2028, "cy28", `CY2028 ${multiple(value2028)}`)}
+          </svg>
           <span class="leverage-values"><span class="v27">${multiple(value2027)}</span><span>→</span><span class="v28">${multiple(value2028)}</span></span>
         </div>
       </div>`;
@@ -821,6 +813,19 @@ function renderLeverageChart(metric, companies) {
 function leveragePosition(value, domainMin, domainMax) {
   if (value === null) return null;
   return Math.max(0, Math.min(100, ((value - domainMin) / (domainMax - domainMin)) * 100));
+}
+
+function leverageMarker(position, yearClass, label) {
+  const coordinate = chartCoordinate(position);
+  return `
+    <g aria-label="${escapeHtml(label)}">
+      <line class="leverage-dot-halo" x1="${coordinate}" x2="${coordinate}" y1="5.9" y2="6.1"></line>
+      <line class="leverage-dot ${yearClass}" x1="${coordinate}" x2="${coordinate}" y1="5.9" y2="6.1"><title>${escapeHtml(label)}</title></line>
+    </g>`;
+}
+
+function chartCoordinate(value) {
+  return Number(value.toFixed(3));
 }
 
 function chartCompanyLabel(company) {
@@ -1280,7 +1285,7 @@ function downloadExcel(buffer, filename) {
   const link = document.createElement("a");
   link.href = url;
   link.download = filename;
-  link.style.display = "none";
+  link.className = "download-link";
   document.body.appendChild(link);
   link.click();
   link.remove();

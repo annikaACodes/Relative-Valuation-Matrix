@@ -21,6 +21,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from decimal import Decimal, InvalidOperation
 from html.parser import HTMLParser
+from http.client import HTTPException
 from pathlib import Path
 from typing import Any, Iterable
 from urllib.error import HTTPError, URLError
@@ -44,6 +45,10 @@ MIN_FISCAL_YEAR = 2024
 MAX_FISCAL_YEAR = 2030
 DEFAULT_TIMEZONE = "America/New_York"
 DEFAULT_WORKERS = 4
+# Micron's 52/53-week fiscal year can end on either side of the month boundary.
+FLOATING_FISCAL_PERIODS = {
+    "micron": frozenset({"August", "September"}),
+}
 USER_AGENT = (
     "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
     "(KHTML, like Gecko) Chrome/140.0 Safari/537.36 "
@@ -273,7 +278,7 @@ def request_text(url: str, attempts: int = 3, timeout: int = 35) -> str:
             if len(text) < 100:
                 raise UpdateError(f"Response was unexpectedly short ({len(text)} bytes)")
             return text
-        except (HTTPError, URLError, TimeoutError, UpdateError) as exc:
+        except (HTTPError, URLError, TimeoutError, HTTPException, OSError, UpdateError) as exc:
             error = exc
             if attempt < attempts:
                 time.sleep(2 ** (attempt - 1))
@@ -418,6 +423,19 @@ def currency_and_scale(titles: Iterable[str]) -> tuple[str, str]:
     return "", ""
 
 
+def validate_fiscal_period_transition(
+    company_id: str, fiscal_period: str, previous_periods: set[str]
+) -> None:
+    if not previous_periods or fiscal_period in previous_periods:
+        return
+    allowed_periods = FLOATING_FISCAL_PERIODS.get(company_id)
+    if allowed_periods and previous_periods.union({fiscal_period}) <= allowed_periods:
+        return
+    raise UpdateError(
+        f"{company_id}: fiscal period changed from {sorted(previous_periods)} to {fiscal_period}"
+    )
+
+
 def parse_forecast_page(
     page: str,
     company_id: str,
@@ -484,10 +502,7 @@ def parse_forecast_page(
         raise UpdateError(f"{company_id}: fiscal period was not found")
 
     previous_periods = {row["fiscal_period"] for row in previous_rows if row.get("fiscal_period")}
-    if previous_periods and fiscal_period not in previous_periods:
-        raise UpdateError(
-            f"{company_id}: fiscal period changed from {sorted(previous_periods)} to {fiscal_period}"
-        )
+    validate_fiscal_period_transition(company_id, fiscal_period, previous_periods)
 
     amount_keys = ("net_income", "ebitda", "net_debt", "fcf")
     currencies = {series_units[key][0] for key in amount_keys if series_units[key][0]}

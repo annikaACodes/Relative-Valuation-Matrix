@@ -3,7 +3,9 @@ from __future__ import annotations
 import sys
 import unittest
 from decimal import Decimal
+from http.client import RemoteDisconnected
 from pathlib import Path
+from unittest.mock import MagicMock, patch
 
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
@@ -129,6 +131,30 @@ class MarketDataParserTests(unittest.TestCase):
     def test_market_cap_guard_rejects_fourfold_jump(self) -> None:
         with self.assertRaises(updater.UpdateError):
             updater.validate_market_cap_change("example", "20", "100")
+
+    def test_micron_allows_53_week_fiscal_period_month_shift(self) -> None:
+        updater.validate_fiscal_period_transition("micron", "September", {"August"})
+
+    def test_other_fiscal_period_month_shift_is_rejected(self) -> None:
+        with self.assertRaises(updater.UpdateError):
+            updater.validate_fiscal_period_transition("example", "September", {"August"})
+
+    def test_request_retries_remote_disconnect(self) -> None:
+        response = MagicMock()
+        response.__enter__.return_value = response
+        response.read.return_value = b"x" * 101
+        response.headers.get_content_charset.return_value = "utf-8"
+        with (
+            patch.object(
+                updater,
+                "urlopen",
+                side_effect=[RemoteDisconnected("closed"), response],
+            ),
+            patch.object(updater.time, "sleep") as sleep,
+        ):
+            result = updater.request_text("https://example.com", attempts=2, timeout=1)
+        self.assertEqual(result, "x" * 101)
+        sleep.assert_called_once_with(1)
 
 
 if __name__ == "__main__":

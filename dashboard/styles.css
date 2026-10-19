@@ -1348,34 +1348,28 @@ a {
 }
 
 .bar-track {
-  position: relative;
+  display: block;
+  width: 100%;
   height: 9px;
   overflow: visible;
-  background: #edf1f5;
-  border-radius: 2px;
 }
 
-.bar-fill {
-  min-width: 2px;
-  height: 100%;
-  border-radius: 2px;
+.chart-track-background {
+  fill: #edf1f5;
 }
 
 .bar-fill.cy27 {
-  background: var(--year-2027);
+  fill: var(--year-2027);
 }
 
 .bar-fill.cy28 {
-  background: var(--year-2028);
+  fill: var(--year-2028);
 }
 
 .median-line {
-  position: absolute;
-  top: -3px;
-  bottom: -3px;
-  width: 2px;
-  background: var(--orange-600);
-  border-radius: 1px;
+  stroke: var(--orange-600);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
 }
 
 .bar-value {
@@ -1394,45 +1388,29 @@ a {
 
 .growth-track,
 .leverage-track {
-  position: relative;
+  display: block;
+  width: 100%;
   height: 12px;
-  background: #edf1f5;
-  border-radius: 2px;
+  overflow: visible;
 }
 
-.growth-track::after {
-  position: absolute;
-  top: -3px;
-  bottom: -3px;
-  left: 50%;
-  width: 1px;
-  background: #94a3b3;
-  content: "";
-}
-
+.growth-zero,
 .leverage-zero {
-  position: absolute;
-  top: -3px;
-  bottom: -3px;
-  width: 1px;
-  background: #94a3b3;
-}
-
-.growth-bar {
-  position: absolute;
-  top: 2px;
-  height: 8px;
-  border-radius: 2px;
+  stroke: #94a3b3;
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
 }
 
 .growth-bar.positive {
-  left: 50%;
-  background: var(--teal-600);
+  fill: var(--teal-600);
 }
 
 .growth-bar.negative {
-  right: 50%;
-  background: var(--coral-600);
+  fill: var(--coral-600);
+}
+
+.growth-bar.neutral {
+  fill: var(--muted);
 }
 
 .growth-value {
@@ -1468,29 +1446,30 @@ a {
 }
 
 .leverage-range {
-  position: absolute;
-  top: 5px;
-  height: 2px;
-  background: #a9b8c8;
+  fill: #a9b8c8;
+}
+
+.leverage-dot-halo,
+.leverage-dot {
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.leverage-dot-halo {
+  stroke: #ffffff;
+  stroke-width: 12;
 }
 
 .leverage-dot {
-  position: absolute;
-  top: 50%;
-  width: 10px;
-  height: 10px;
-  transform: translate(-50%, -50%);
-  border: 2px solid #ffffff;
-  border-radius: 50%;
-  box-shadow: 0 0 0 1px rgba(16, 36, 63, 0.2);
+  stroke-width: 8;
 }
 
 .leverage-dot.cy27 {
-  background: var(--year-2027);
+  stroke: var(--year-2027);
 }
 
 .leverage-dot.cy28 {
-  background: var(--year-2028);
+  stroke: var(--year-2028);
 }
 
 .leverage-values {
@@ -1515,6 +1494,10 @@ a {
   color: var(--muted);
   font-size: 0.75rem;
   text-align: center;
+}
+
+.download-link {
+  display: none;
 }
 
 .change-section {
